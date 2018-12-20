@@ -8,6 +8,7 @@ void hide_widget(widget *w);
 void draw_area(int x, int y, int w, int h);
 void set_widget(widget *w, int x, int y);
 void layout_widget(widget *w);
+void pack_widget(widget *p, widget *c);
 
 extern widget root;
 extern widget *dialog;

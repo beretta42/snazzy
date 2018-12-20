@@ -252,6 +252,7 @@ void draw_button(widget *w) {
     ll_bar(w->x,w->y,w->w,w->h);
     /* box */
     ll_cset(0);
+    //ll_box(w->x+2, w->y+2, w->w-4, w->h-4);
     ll_hline(w->x+2, w->y+2, w->w-4);
     ll_hline(w->x+2, w->y + w->h-2, w->w-4+1);
     ll_vline(w->x+2, w->y+2, w->h-4);
@@ -321,26 +322,6 @@ void draw_widget(widget *w){
 }
 
 
-void pack_widget(widget *p,widget *c){
-    /* setup child */
-    c->sib = NULL;
-    c->parent = p;
-    /* find last */
-    widget *ptr = p->child;
-    widget *last = NULL;
-    while (ptr){
-	last = ptr;
-	ptr = ptr->sib;
-    }
-    if (last == NULL){
-	p->child = c;
-    }
-    else{
-	last->sib = c;
-    }
-}
-
-
 widget root;
 widget *dialog = &root;
 
@@ -363,68 +344,6 @@ int s_init(int w, int h) {
     root.w = w;
     root.h = h;
     root.vmt = &root_vmt;
-}
-
-
-void layout_widget(widget *w) {
-    widget *p = w->child;
-    int max = 0;
-    while (p) {
-	layout_widget(p);
-	if (p->flags & S_OVER){
-	    /* this is an overlay, don't take in account it's dims */
-	}
-	else {
-	    if (w->flags & S_VERT){
-		w->h += p->h;
-		if (p->w > max) max = p->w;
-	    }
-	    else {
-		w->w += p->w;
-		if (p->h > max) max = p->h;
-	    }
-	}
-	p = p->sib;
-    }
-    if (w->flags & S_VERT)
-	w->w = max;
-    else
-	w->h = max;
-    w->vmt->layout(w);
-}
-
-void set_widget(widget *w, int x, int y) {
-    int a;
-    w->x = x;
-    w->y = y;
-    widget *p = w->child;
-
-    if (w->flags & S_VERT){
-	a = y;
-	while (p) {
-	    set_widget(p, x, a);
-	    if (p->flags & S_OVER) {
-	    }
-	    else {
-		a += p->h;
-	    }
-	    w->vmt->set(w,p);
-	    p = p->sib;
-	}
-    }
-    else {
-	a = x;
-	while (p) {
-	    set_widget(p, a, y);
-	    if (p->flags & S_OVER) {
-	    }
-	    else {
-		a += p->w;
-	    }
-	    w->vmt->set(w,p);
-	    p = p->sib;
-	}
-    }
 }
 
 
@@ -596,12 +515,12 @@ int main(int argc, char *argv[]) {
     pack_widget(&root, &xrad1);
 
     new_radio(&xrad2, &xrad1);
-    new_label(&xlab8, "killed the");
+    new_label(&xlab8, "buttons");
     pack_widget(&xrad2, &xlab8);
     pack_widget(&root, &xrad2);
 
     new_radio(&xrad3, &xrad1);
-    new_label(&xlab9, "Telegram Star");
+    new_label(&xlab9, "are awesome.");
     pack_widget(&xrad3, &xlab9);
     pack_widget(&root, &xrad3);
 
