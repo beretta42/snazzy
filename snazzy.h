@@ -9,8 +9,9 @@ void draw_area(int x, int y, int w, int h);
 void set_widget(widget *w, int x, int y);
 void layout_widget(widget *w);
 void pack_widget(widget *p, widget *c);
+widget *alloc_widget(char *name);
 
-extern widget root;
+extern widget *root;
 extern widget *dialog;
 
 
@@ -42,6 +43,7 @@ struct widget_s {
     int w;
     int h;
     char data[64];      /* fixme: make much smaller for 16 bit machines */
+    char *name;         /* for widget compiler a unique text label*/
 };
 
 void new_radio(widget *w, widget *g);

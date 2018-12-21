@@ -148,7 +148,6 @@ void set_label(widget *w, widget *c){
 
 void new_label(widget *w, char *s) {
     struct label_data *d = (struct label_data *)&w->data;
-    memset(w,0, sizeof(widget));
     d->text = s;
     w->vmt = &label_vmt;
 }
@@ -234,7 +233,6 @@ struct vmt_s check_vmt = {
 };
 
 void new_check(widget *w) {
-    memset(w,0,sizeof(widget));
     w->vmt = &check_vmt;
     w->flags |= S_MOUSE;
 }
@@ -304,7 +302,6 @@ struct vmt_s button_vmt = {
 
 void new_button(widget *w, void (*cb)(widget *w)) {
     struct button_data *d = (struct button_data *)&w->data;
-    memset(w,0, sizeof(widget));
     w->vmt = &button_vmt;
     w->flags |= S_MOUSE;
     d->clicked = cb;
@@ -322,8 +319,8 @@ void draw_widget(widget *w){
 }
 
 
-widget root;
-widget *dialog = &root;
+widget *root;
+widget *dialog;
 
 void draw_root(widget *w){
     ll_clear();
@@ -340,16 +337,16 @@ struct vmt_s root_vmt = {
 };
 
 int s_init(int w, int h) {
-    memset(&root, 0, sizeof(widget));
-    root.w = w;
-    root.h = h;
-    root.vmt = &root_vmt;
+    dialog = root = alloc_widget("root");
+    root->w = w;
+    root->h = h;
+    root->vmt = &root_vmt;
 }
 
 
 /* redraw all widgets in an area */
 void draw_area(int x, int y, int w, int h) {
-    widget *p = root.child;
+    widget *p = root->child;
     ll_bar(x,y,w,h);
     ll_cset(0);
     while (p) {
@@ -396,53 +393,69 @@ widget *collide(widget *w, int x, int y) {
 
 
 
-widget xlab1;
-widget xlab2;
-widget xlab3;
-widget xbut1;
-widget xbut2;
-widget xbut3;
-widget xlab4;
-widget xcheck1;
-widget xlab5;
-widget xcheck2;
-widget xlab6;
-widget xrad1;
-widget xlab7;
-widget xrad2;
-widget xlab8;
-widget xrad3;
-widget xlab9;
-widget xlab10;
-widget xlab11;
-widget xlab12;
-widget xlab13;
-widget xmenu1;
-widget xitem1;
-widget xitem2;
-widget xitem3;
-widget xarea1;
+widget *xlab1;
+widget *xlab2;
+widget *xlab3;
+widget *xbut1;
+widget *xbut2;
+widget *xbut3;
+widget *xlab4;
+widget *xcheck1;
+widget *xlab5;
+widget *xcheck2;
+widget *xlab6;
+widget *xrad1;
+widget *xlab7;
+widget *xrad2;
+widget *xlab8;
+widget *xrad3;
+widget *xlab9;
+widget *xlab10;
+widget *xlab11;
+widget *xlab12;
+widget *xlab13;
+widget *xmenu1;
+widget *xitem1;
+widget *xitem2;
+widget *xitem3;
+widget *xarea1;
 
 char *get_name(widget *w){
     char *s;
     s = "unknown";
-    if (w == &xlab1)
+    if (w == xlab1)
 	s = "xlab1";
-    if (w == &xlab2)
+    if (w == xlab2)
 	s = "xlab2";
-    if (w == &xbut1)
+    if (w == xbut1)
 	s = "xbut1";
-    if (w == &xbut2)
+    if (w == xbut2)
 	s = "xbut2";
-    if (w == &root)
+    if (w == root)
 	s = "root";
-    if (w == &xbut3)
+    if (w == xbut3)
 	s = "xbut3";
-    if (w == &xlab4)
+    if (w == xlab4)
 	s = "xlab4";
-    if (w == &xlab3)
+    if (w == xlab3)
 	s = "xlab3";
     return s;
+}
+
+
+void compile_widget(widget *w){
+    /* print all the children first */
+    widget *p = w->child;
+    while (p) {
+	compile_widget(p);
+	p = p->sib;
+    }
+    /* print me */
+    printf("widget %s = {;\n", w->name);
+    //printf("\t%s,\n", get_name(w->parent));
+    //printf("\t%s,\n", w->sib->name);
+    //printf("\t%s,\n", w->child->name);
+    printf("};\n\n");
 }
 
 void list_widget(widget *w){
@@ -485,66 +498,96 @@ int main(int argc, char *argv[]) {
     s_init(256,192);
     ll_cset(0);
 
-    new_area(&xarea1);
-    xarea1.flags |= S_VERT;
-    new_label(&xlab10, "Open");
-    new_label(&xlab11, "Close");
-    new_label(&xlab12, "Save");
-    pack_widget(&xarea1, &xlab10);
-    pack_widget(&xarea1, &xlab11);
-    pack_widget(&xarea1, &xlab12);
-    new_label(&xlab13, "File");
-    new_menu(&xmenu1, &xarea1);
-    pack_widget(&xmenu1, &xlab13);
-    pack_widget(&root, &xmenu1);
-    pack_widget(&root, &xarea1);
+    xlab1 = alloc_widget("xlab1");
+    xlab2 = alloc_widget("xlab2");
+    xlab3 = alloc_widget("xlab3");
+    xbut1 = alloc_widget("xbut1");
+    xbut2 = alloc_widget("xbut2");
+    xbut3 = alloc_widget("xbut3");
+    xlab4 = alloc_widget("xlab4");
+    xcheck1 = alloc_widget("xcheck1");
+    xlab5 = alloc_widget("xlab5");
+    xcheck2 = alloc_widget("xcheck2");
+     xlab6 = alloc_widget("xlab6");
+     xrad1 = alloc_widget("xrad1");
+     xlab7 = alloc_widget("xlab7");
+     xrad2 = alloc_widget("xtad2");
+     xlab8 = alloc_widget("xlab8");
+     xrad3 = alloc_widget("xrad3");
+     xlab9 = alloc_widget("xlab9");
+     xlab10 = alloc_widget("xlab10");
+     xlab11 = alloc_widget("xlab11");
+     xlab12 = alloc_widget("xlab12");
+     xlab13 = alloc_widget("xlab13");
+     xmenu1 = alloc_widget("xmenu1");
+     xitem1 = alloc_widget("xitem1");
+     xitem2 = alloc_widget("xitem2");
+     xitem3 = alloc_widget("xitem3");
+     xarea1 = alloc_widget("xitem4");
+     
+
+
+    new_area(xarea1);
+    xarea1->flags |= S_VERT;
+    new_label(xlab10, "Open");
+    new_label(xlab11, "Close");
+    new_label(xlab12, "Save");
+    pack_widget(xarea1, xlab10);
+    pack_widget(xarea1, xlab11);
+    pack_widget(xarea1, xlab12);
+    new_label(xlab13, "File");
+    new_menu(xmenu1, xarea1);
+    pack_widget(xmenu1, xlab13);
+    pack_widget(root, xmenu1);
+    pack_widget(root, xarea1);
     
-    new_check(&xcheck1);
-    new_label(&xlab5, "checky");
-    pack_widget(&xcheck1, &xlab5);
-    pack_widget(&root, &xcheck1);
+    new_check(xcheck1);
+    new_label(xlab5, "checky");
+    pack_widget(xcheck1, xlab5);
+    pack_widget(root, xcheck1);
 
-    new_check(&xcheck2);
-    new_label(&xlab6, "no check me!");
-    pack_widget(&xcheck2, &xlab6);
-    pack_widget(&root, &xcheck2);
+    new_check(xcheck2);
+    new_label(xlab6, "no check me!");
+    pack_widget(xcheck2, xlab6);
+    pack_widget(root, xcheck2);
 
-    new_radio(&xrad1,NULL);
-    new_label(&xlab7, "Radio");
-    pack_widget(&xrad1, &xlab7);
-    pack_widget(&root, &xrad1);
+    new_radio(xrad1,NULL);
+    new_label(xlab7, "Radio");
+    pack_widget(xrad1, xlab7);
+    pack_widget(root, xrad1);
 
-    new_radio(&xrad2, &xrad1);
-    new_label(&xlab8, "buttons");
-    pack_widget(&xrad2, &xlab8);
-    pack_widget(&root, &xrad2);
+    new_radio(xrad2, xrad1);
+    new_label(xlab8, "buttons");
+    pack_widget(xrad2, xlab8);
+    pack_widget(root, xrad2);
 
-    new_radio(&xrad3, &xrad1);
-    new_label(&xlab9, "are awesome.");
-    pack_widget(&xrad3, &xlab9);
-    pack_widget(&root, &xrad3);
+    new_radio(xrad3, xrad1);
+    new_label(xlab9, "are awesome.");
+    pack_widget(xrad3, xlab9);
+    pack_widget(root, xrad3);
 
-    new_label(&xlab1, "Ok");
-    new_label(&xlab2, "Cancel");
-    new_label(&xlab3, "Accept");
-    new_label(&xlab4, "Select One");
-    new_button(&xbut1, do_ok);
-    new_button(&xbut2, do_cancel);
-    new_button(&xbut3, do_accept);
-    pack_widget(&root,&xlab4);
-    pack_widget(&root,&xbut1);
-    pack_widget(&root,&xbut2);
-    pack_widget(&root,&xbut3);
-    pack_widget(&xbut1,&xlab1);
-    pack_widget(&xbut2,&xlab2);
-    pack_widget(&xbut3,&xlab3);
+    new_label(xlab1, "Ok");
+    new_label(xlab2, "Cancel");
+    new_label(xlab3, "Accept");
+    new_label(xlab4, "Select One");
+    new_button(xbut1, do_ok);
+    new_button(xbut2, do_cancel);
+    new_button(xbut3, do_accept);
+    pack_widget(root,xlab4);
+    pack_widget(root,xbut1);
+    pack_widget(root,xbut2);
+    pack_widget(root,xbut3);
+    pack_widget(xbut1,xlab1);
+    pack_widget(xbut2,xlab2);
+    pack_widget(xbut3,xlab3);
 
 
-    root.flags = S_VERT;
-    layout_widget(&root);
-    set_widget(&root, 2, 2);
-    list_widget(&root);
-    draw_widget(&root);
+    root->flags = S_VERT;
+    layout_widget(root);
+    set_widget(root, 2, 2);
+    //list_widget(root);
+    compile_widget(root);
+    draw_widget(root);
 
     SDL_UpdateWindowSurface(win);
 

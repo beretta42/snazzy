@@ -42,6 +42,5 @@ static struct vmt_s widget_vmt = {
 };
 
 void new_area(widget *w) {
-    memset(w,0,sizeof(widget));
     w->vmt = &widget_vmt;
 }

@@ -92,7 +92,6 @@ static struct vmt_s widget_vmt = {
 
 void new_radio(widget *w, widget *g) {
     struct widget_data *d = (struct widget_data *)&w->data;
-    memset(w,0,sizeof(widget));
     w->vmt = &widget_vmt;
     w->flags |= S_MOUSE;
     /* attaching to another group leader? */

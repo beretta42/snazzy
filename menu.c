@@ -51,7 +51,7 @@ static void up(widget *w){
     pop->flags |= S_HIDDEN;
     ll_cset(1);
     draw_area(pop->x, pop->y, pop->w, pop->h);
-    dialog = &root;
+    dialog = root;
 }
 
 static void down(widget *w){
@@ -92,7 +92,6 @@ static struct vmt_s widget_vmt = {
 
 void new_menu(widget *w, widget *g) {
     USE_DATA;
-    memset(w,0,sizeof(widget));
     g->flags |= S_HIDDEN;
     g->flags |= S_OVER;
     w->vmt = &widget_vmt;

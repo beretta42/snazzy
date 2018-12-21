@@ -8,6 +8,16 @@ Layout / Moving
 #include "snazzy.h"
 
 
+static int sp = 0;
+static widget widgets[256];
+
+widget * alloc_widget(char *name){
+    widget *new = &widgets[sp++];
+    memset(new, 0, sizeof(widget));
+    new->name = name;
+    return new;
+}
+
 void pack_widget(widget *p,widget *c){
     /* setup child */
     c->sib = NULL;
