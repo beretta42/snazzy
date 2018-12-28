@@ -49,5 +49,7 @@ struct widget_s {
 void new_radio(widget *w, widget *g);
 void new_menu(widget *w, widget *g);
 void new_area(widget *w);
+void new_button(widget *w, void (*cb)(widget *w));
+
 
 #endif /* SNAZZY_H */

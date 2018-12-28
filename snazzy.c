@@ -240,72 +240,6 @@ void new_check(widget *w) {
 
 
 
-struct button_data {
-    void (*clicked)(widget *w);
-};
-
-void draw_button(widget *w) {
-    /* background */
-    ll_cset(1);
-    ll_bar(w->x,w->y,w->w,w->h);
-    /* box */
-    ll_cset(0);
-    //ll_box(w->x+2, w->y+2, w->w-4, w->h-4);
-    ll_hline(w->x+2, w->y+2, w->w-4);
-    ll_hline(w->x+2, w->y + w->h-2, w->w-4+1);
-    ll_vline(w->x+2, w->y+2, w->h-4);
-    ll_vline(w->x+ w->w -2, w->y+2, w->h-4);
-    /* shadow */
-    ll_hline(w->x+1, w->y + w->h -1, w->w-2+1);
-    ll_vline(w->x+w->w-1, w->y+1, w->h-2);
-}
-
-void layout_button(widget *w) {
-    w->w += 8;
-    w->h += 8;
-}
-
-void set_button(widget *w,widget *c){
-    c->x = w->x + (w->w/2 - c->w/2);
-    c->y = w->y + (w->h/2 - c->h/2);
-}
-
-void up_button(widget *w){
-    draw_widget(w);
-}
-
-void down_button(widget *w) {
-    /* remove shadow from bottom right */
-    ll_cset(1);
-    ll_hline(w->x+1, w->y + w->h -1, w->w-2+1);
-    ll_vline(w->x+w->w-1, w->y+1, w->h-2);
-    /* put shadow top left */
-    ll_cset(0);
-    ll_hline(w->x+1, w->y+1, w->w-1);
-    ll_vline(w->x+1, w->y+1, w->h-1);
-}
-
-void clicked_button(widget *w) {
-    struct button_data *d = (struct button_data *)&w->data;
-    if (d->clicked) d->clicked(w);
-}
-
-struct vmt_s button_vmt = {
-    draw_button,
-    layout_button,
-    set_button,
-    down_button,
-    up_button,
-    clicked_button,
-    noop,
-};
-
-void new_button(widget *w, void (*cb)(widget *w)) {
-    struct button_data *d = (struct button_data *)&w->data;
-    w->vmt = &button_vmt;
-    w->flags |= S_MOUSE;
-    d->clicked = cb;
-}
 
 void draw_widget(widget *w){
     if( w->flags & S_HIDDEN )
@@ -444,6 +378,7 @@ char *get_name(widget *w){
 
 
 void compile_widget(widget *w){
+    char *n;
     /* print all the children first */
     widget *p = w->child;
     while (p) {
@@ -452,9 +387,21 @@ void compile_widget(widget *w){
     }
     /* print me */
     printf("widget %s = {;\n", w->name);
-    //printf("\t%s,\n", get_name(w->parent));
-    //printf("\t%s,\n", w->sib->name);
-    //printf("\t%s,\n", w->child->name);
+    if (w->parent)
+	n = w->parent->name;
+    else
+	n = "NULL";
+    printf("\t%s,\n", n);
+    if (w->sib)
+	n = w->sib->name;
+    else
+	n = "NULL";
+    printf("\t%s,\n", n);
+    if (w->child)
+	n = w->child->name;
+    else
+	n = "NULL";
+    printf("\t%s,\n", n);
     printf("};\n\n");
 }
 
@@ -508,24 +455,23 @@ int main(int argc, char *argv[]) {
     xcheck1 = alloc_widget("xcheck1");
     xlab5 = alloc_widget("xlab5");
     xcheck2 = alloc_widget("xcheck2");
-     xlab6 = alloc_widget("xlab6");
-     xrad1 = alloc_widget("xrad1");
-     xlab7 = alloc_widget("xlab7");
-     xrad2 = alloc_widget("xtad2");
-     xlab8 = alloc_widget("xlab8");
-     xrad3 = alloc_widget("xrad3");
-     xlab9 = alloc_widget("xlab9");
-     xlab10 = alloc_widget("xlab10");
-     xlab11 = alloc_widget("xlab11");
-     xlab12 = alloc_widget("xlab12");
-     xlab13 = alloc_widget("xlab13");
-     xmenu1 = alloc_widget("xmenu1");
-     xitem1 = alloc_widget("xitem1");
-     xitem2 = alloc_widget("xitem2");
-     xitem3 = alloc_widget("xitem3");
-     xarea1 = alloc_widget("xitem4");
+    xlab6 = alloc_widget("xlab6");
+    xrad1 = alloc_widget("xrad1");
+    xlab7 = alloc_widget("xlab7");
+    xrad2 = alloc_widget("xtad2");
+    xlab8 = alloc_widget("xlab8");
+    xrad3 = alloc_widget("xrad3");
+    xlab9 = alloc_widget("xlab9");
+    xlab10 = alloc_widget("xlab10");
+    xlab11 = alloc_widget("xlab11");
+    xlab12 = alloc_widget("xlab12");
+    xlab13 = alloc_widget("xlab13");
+    xmenu1 = alloc_widget("xmenu1");
+    xitem1 = alloc_widget("xitem1");
+    xitem2 = alloc_widget("xitem2");
+    xitem3 = alloc_widget("xitem3");
+    xarea1 = alloc_widget("xitem4");
      
-
 
     new_area(xarea1);
     xarea1->flags |= S_VERT;
@@ -587,6 +533,7 @@ int main(int argc, char *argv[]) {
     set_widget(root, 2, 2);
     //list_widget(root);
     compile_widget(root);
+    printf("size of widget %d\n", sizeof(widget));
     draw_widget(root);
 
     SDL_UpdateWindowSurface(win);
