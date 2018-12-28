@@ -1,5 +1,6 @@
 /* a label widget */
 
+#include <string.h>
 #include "snazzy.h"
 #include "tgi.h"
 
