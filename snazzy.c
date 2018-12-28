@@ -112,7 +112,6 @@ void set_noop(widget *w, widget *c){
 }
 
 
-
 void draw_widget(widget *w){
     if( w->flags & S_HIDDEN )
 	return;
@@ -226,28 +225,6 @@ widget *xitem2;
 widget *xitem3;
 widget *xarea1;
 
-char *get_name(widget *w){
-    char *s;
-    s = "unknown";
-    if (w == xlab1)
-	s = "xlab1";
-    if (w == xlab2)
-	s = "xlab2";
-    if (w == xbut1)
-	s = "xbut1";
-    if (w == xbut2)
-	s = "xbut2";
-    if (w == root)
-	s = "root";
-    if (w == xbut3)
-	s = "xbut3";
-    if (w == xlab4)
-	s = "xlab4";
-    if (w == xlab3)
-	s = "xlab3";
-    return s;
-}
-
 
 void compile_widget(widget *w){
     char *n;
@@ -275,24 +252,6 @@ void compile_widget(widget *w){
 	n = "NULL";
     printf("\t%s,\n", n);
     printf("};\n\n");
-}
-
-void list_widget(widget *w){
-    static int t = 0;
-    int x;
-    char *s;
-    for( x=0; x<t; x++)
-	printf("  ");
-    s = get_name(w);
-    printf("%s %p: %p %p %d %d %d %d\n",
-	   s, w, w->child, w->sib, w->x, w->y, w->w, w->h);
-    widget *p = w->child;
-    t++;
-    while (p) {
-	list_widget(p);
-	p = p->sib;
-    }
-    t--;
 }
 
 void do_ok(widget *w) {
