@@ -50,6 +50,6 @@ void new_radio(widget *w, widget *g);
 void new_menu(widget *w, widget *g);
 void new_area(widget *w);
 void new_button(widget *w, void (*cb)(widget *w));
-
+void new_label(widget *w, char *s);
 
 #endif /* SNAZZY_H */
