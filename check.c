@@ -30,7 +30,7 @@ static unsigned char check_ico_down[] = {
     0b11111100,
 };
 
-static struct check_data {
+struct check_data {
     unsigned char state;
 };
 

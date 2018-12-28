@@ -4,7 +4,7 @@
 #include "snazzy.h"
 #include "ll.h"
 
-static struct widget_data {
+struct widget_data {
 };
 
 

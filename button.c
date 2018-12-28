@@ -6,7 +6,7 @@
 
 
 
-static struct button_data {
+struct button_data {
     void (*clicked)(widget *w);
 };
 
