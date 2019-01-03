@@ -1,5 +1,6 @@
 /* a label widget */
 
+#include <stdio.h>
 #include <string.h>
 #include "snazzy.h"
 #include "tgi.h"
@@ -7,17 +8,9 @@
 /* fixme: no, no, no */
 #include "/home/beretta/C/platotermCoCo/src/coco2/font.c"
 
-struct label_data {
-    char *text;
-};
 
-//void draw_label(widget *w);
-//void layout_label(widget *w);
-//void set_label(widget *w, widget *c);
-
-static void draw_label(widget *w) {
-    struct label_data *d = (struct label_data *)&w->data;
-    char *s = d->text;
+void draw(widget *w) {
+    const char *s = w->data.label.text;
     int x = w->x + 1;
     int y = w->y + 1;
     int c;
@@ -27,20 +20,26 @@ static void draw_label(widget *w) {
     }
 }
 
-static void set_label(widget *w, widget *c){
+static void set(widget *w, widget *c){
 }
 
-static void layout_label(widget *w) {
+static void layout(widget *w) {
     struct label_data *d = (struct label_data *)&w->data;
     w->h = 6;
     w->w = strlen(d->text) * 4 + 2;
 }
 
 
+static void compile(widget *w) {
+    printf("\t&label_vmt,\n");
+    printf("\t(struct label_data){\n");
+    printf("\t\t%s_text,\n", w->ct->name);
+    printf("\t},\n");
+}
+
 struct vmt_s label_vmt = {
-    draw_label,
-    layout_label,
-    set_label,
+    draw,
+    noop,
     noop,
     noop,
     noop,
@@ -49,9 +48,13 @@ struct vmt_s label_vmt = {
 
 
 void new_label(widget *w, char *s) {
-    struct label_data *d = (struct label_data *)&w->data;
-    d->text = s;
+    w->data.label.text = s;
+    /* compile here */
+    printf("#define %s_text  \"%s\"\n", w->ct->name, s);
     w->vmt = &label_vmt;
+    w->ct->layout = layout;
+    w->ct->set = set;
+    w->ct->compile = compile;
 }
 
 

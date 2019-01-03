@@ -134,7 +134,6 @@ void draw_root(widget *w){
 struct vmt_s root_vmt = {
     draw_root,
     noop,
-    set_noop,
     noop,
     noop,
     noop,
@@ -142,10 +141,12 @@ struct vmt_s root_vmt = {
 };
 
 int s_init(int w, int h) {
-    dialog = root = alloc_widget("root");
+    dialog = root = alloc_widget("myroot");
     root->w = w;
     root->h = h;
     root->vmt = &root_vmt;
+    root->ct->layout = noop;
+    root->ct->set = set_noop;
 }
 
 
@@ -228,29 +229,45 @@ widget *xarea1;
 
 void compile_widget(widget *w){
     char *n;
+    printf("widget %s;\n", w->ct->name);
+    if (w->parent)
+	printf("widget %s;\n", w->parent->ct->name);
+    if (w->sib)
+	printf("widget %s;\n", w->sib->ct->name);
     /* print all the children first */
     widget *p = w->child;
     while (p) {
 	compile_widget(p);
 	p = p->sib;
     }
-    /* print me */
-    printf("widget %s = {;\n", w->name);
+    /* print struct header */
+    printf("widget %s = {\n", w->ct->name);
+    /* print my parent */
     if (w->parent)
-	n = w->parent->name;
+	printf("\t&%s,\n", w->parent->ct->name);
     else
-	n = "NULL";
-    printf("\t%s,\n", n);
+	printf("\tNULL,\n");
+    /* print my sibling */
     if (w->sib)
-	n = w->sib->name;
+        printf("\t&%s,\n", w->sib->ct->name);
     else
-	n = "NULL";
-    printf("\t%s,\n", n);
+        printf("\tNULL,\n");
+
+    /* print my child */
     if (w->child)
-	n = w->child->name;
+        printf("\t&%s,\n", w->child->ct->name);
     else
-	n = "NULL";
-    printf("\t%s,\n", n);
+        printf("\tNULL,\n");
+    /* flags */
+    printf("\t0x%x,\n", w->flags);
+    /* coords */
+    printf("\t%d,\n", w->x);
+    printf("\t%d,\n", w->y);
+    printf("\t%d,\n", w->w);
+    printf("\t%d,\n", w->h);
+    /* call widget's compile method handling the private area */
+    if (w->ct->compile) w->ct->compile(w);
+    /* print trailer */
     printf("};\n\n");
 }
 
@@ -364,7 +381,6 @@ int main(int argc, char *argv[]) {
     set_widget(root, 2, 2);
     //list_widget(root);
     compile_widget(root);
-    printf("size of widget %d\n", sizeof(widget));
     draw_widget(root);
 
     SDL_UpdateWindowSurface(win);
@@ -407,6 +423,7 @@ int main(int argc, char *argv[]) {
 	    }
 	    else {
 		if (cd) cd->vmt->up(cd);
+		cd = NULL;
 	    }
 	}
 	SDL_UpdateWindowSurface(win);

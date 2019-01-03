@@ -10,11 +10,15 @@ Layout / Moving
 
 static int sp = 0;
 static widget widgets[256];
+static widget_ct cts[256];
 
 widget * alloc_widget(char *name){
+    widget_ct *ct = &cts[sp];
     widget *new = &widgets[sp++];
     memset(new, 0, sizeof(widget));
-    new->name = name;
+    memset(ct, 0, sizeof(widget_ct));
+    new->ct = ct;
+    ct->name = name;
     return new;
 }
 
@@ -54,7 +58,7 @@ void set_widget(widget *w, int x, int y) {
 	    else {
 		a += p->h;
 	    }
-	    w->vmt->set(w,p);
+	    w->ct->set(w,p);
 	    p = p->sib;
 	}
     }
@@ -67,7 +71,7 @@ void set_widget(widget *w, int x, int y) {
 	    else {
 		a += p->w;
 	    }
-	    w->vmt->set(w,p);
+	    w->ct->set(w,p);
 	    p = p->sib;
 	}
     }
@@ -98,7 +102,7 @@ void layout_widget(widget *w) {
 	w->w = max;
     else
 	w->h = max;
-    w->vmt->layout(w);
+    w->ct->layout(w);
 }
 
 

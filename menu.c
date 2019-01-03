@@ -1,10 +1,9 @@
 /* A Menu Widget */
 
+#include <stdio.h>
 #include <string.h>
 #include "snazzy.h"
 #include "ll.h"
-
-#define USE_DATA  struct widget_data *d = (struct widget_data *)&w->data
 
 static unsigned char ico_norm[] = {
     0b00000000,
@@ -15,13 +14,7 @@ static unsigned char ico_norm[] = {
     0b00000000,
 };
 
-typedef struct widget_data * data;
-
-struct widget_data {
-    unsigned char state;
-    widget *popup;
-};
-
+typedef struct radio_data * data;
 
 static void draw(widget *w) {
     int x, y;
@@ -39,15 +32,25 @@ static void layout(widget *w) {
 }
 
 static void set(widget *w, widget *c){
-    USE_DATA;
-    widget *a = d->popup;
+    widget *a = w->data.menu.popup;
     a->x = w->x + c->x;
     a->y = w->y + c->h;
 }
 
+static void compile(widget *w) {
+    printf("\t&menu_vmt,\n");
+    printf("\t.data.menu = {\n");
+    printf("\t\t%d,\n", w->data.menu.state);
+    if (w->data.menu.popup)
+	printf("\t\t&%s,\n", w->data.menu.popup->ct->name);
+    else
+	printf("\t\tNULL,\n");
+    printf("\t},\n");
+
+}
+
 static void up(widget *w){
-    USE_DATA;
-    widget *pop = d->popup;
+    widget *pop = w->data.menu.popup;
     pop->flags |= S_HIDDEN;
     ll_cset(1);
     draw_area(pop->x, pop->y, pop->w, pop->h);
@@ -58,11 +61,10 @@ static void down(widget *w){
 }
 
 static void clicked(widget *w){
-    USE_DATA;
-    widget *pop = d->popup;
-    if (d->state) {
+    widget *pop = w->data.menu.popup;
+    if (w->data.menu.state) {
 	up(w);
-	d->state = 0;
+	w->data.menu.state = 0;
     }
     else {
 	pop->flags &= ~S_HIDDEN;
@@ -71,32 +73,33 @@ static void clicked(widget *w){
 	ll_cset(0);
 	draw_widget(pop);
 	dialog = pop;
-	d->state = 1;
+	w->data.menu.state = 1;
     }
 }
 
 static void move(widget *w){
 }
 
-static struct vmt_s widget_vmt = {
+struct vmt_s menu_vmt = {
     draw,
-    layout,
-    set,
     down,
     up,
     clicked,
     move,
+    noop,
 };
 
 
 
 void new_menu(widget *w, widget *g) {
-    USE_DATA;
     g->flags |= S_HIDDEN;
     g->flags |= S_OVER;
-    w->vmt = &widget_vmt;
+    w->vmt = &menu_vmt;
     w->flags |= S_MOUSE | S_VERT;
-    d->popup = g;
+    w->ct->layout = layout;
+    w->ct->set = set;
+    w->ct->compile = compile;
+    w->data.menu.popup = g;
 }
 
 

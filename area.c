@@ -1,11 +1,9 @@
 /* Area Widget */
 
+#include <stdio.h>
 #include <string.h>
 #include "snazzy.h"
 #include "ll.h"
-
-struct widget_data {
-};
 
 
 static void draw(widget *w) {
@@ -22,6 +20,10 @@ static void set(widget *w, widget *c){
     c->y += 2;
 }
 
+static void compile(widget *w){
+    printf("\t&area_vmt,\n");
+}
+
 static void up(widget *w){
 }
 
@@ -31,16 +33,18 @@ static void down(widget *w){
 static void clicked(widget *w){
 }
 
-static struct vmt_s widget_vmt = {
+struct vmt_s area_vmt = {
     draw,
-    layout,
-    set,
     down,
     up,
     clicked,
     noop,
+    noop,
 };
 
 void new_area(widget *w) {
-    w->vmt = &widget_vmt;
+    w->vmt = &area_vmt;
+    w->ct->layout = layout;
+    w->ct->set = set;
+    w->ct->compile = compile;
 }

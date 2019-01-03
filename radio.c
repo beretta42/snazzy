@@ -1,5 +1,6 @@
 /* A Radio Button */
 
+#include <stdio.h>
 #include <string.h>
 #include "snazzy.h"
 #include "ll.h"
@@ -31,21 +32,13 @@ static unsigned char ico_set[] = {
     0b01111000,
 };
 
-typedef struct widget_data * data;
-
-struct widget_data {
-    unsigned char state;
-    widget *sel;            /* currently selected */
-    widget *group;
-};
-
 
 static void draw(widget *w) {
     ll_cset(1);
     ll_bar( w->x, w->y, 8, 6);
     ll_cset(0);
     ll_char_draw(w->x+1, w->y+1, ico_up);
-    if (w->data[0])
+    if (w->data.radio.state)
 	ll_char_draw(w->x+1, w->y+1, ico_set);
 }
 
@@ -56,6 +49,24 @@ static void layout(widget *w) {
 
 static void set(widget *w, widget *c){
     c->x += 10;
+}
+
+static void compile(widget *w) {
+    printf("\t&radio_vmt,\n");
+    printf("\t.data.radio = {\n");
+    printf("\t\t%d,\n", w->data.radio.state);
+
+    if (w->data.radio.sel)
+	printf("\t\t&%s,\n", w->data.radio.sel->ct->name);
+    else
+	printf("\t\tNULL,\n");
+
+    if (w->data.radio.group)
+	printf("\t\t&%s,\n", w->data.radio.group->ct->name);
+    else
+	printf("\t\tNULL,\n");
+
+    printf("\t},\n");
 }
 
 static void up(widget *w){
@@ -70,30 +81,33 @@ static void down(widget *w){
 }
 
 static void clicked(widget *w){
-    data d = (data)&w->data;
-    d = (data)&(d->group->data);
-    d->sel->data[0] = 0;
-    draw(d->sel);
-    d->sel = w;
-    w->data[0] = -1;
+    widget *grp = w->data.radio.group;
+    widget *sel = grp->data.radio.sel;
+    sel->data.radio.state = 0;
+    draw(sel);
+    grp->data.radio.sel = w;
+    w->data.radio.state = -1;
     draw(w);
 }
 
-static struct vmt_s widget_vmt = {
+
+struct vmt_s radio_vmt = {
     draw,
-    layout,
-    set,
     down,
     up,
     clicked,
+    noop,
     noop,
 };
 
 
 void new_radio(widget *w, widget *g) {
-    struct widget_data *d = (struct widget_data *)&w->data;
-    w->vmt = &widget_vmt;
+    struct radio_data *d = (struct radio_data *)&w->data;
+    w->vmt = &radio_vmt;
     w->flags |= S_MOUSE;
+    w->ct->layout = layout;
+    w->ct->set = set;
+    w->ct->compile = compile;
     /* attaching to another group leader? */
     if (g) {
 	d->group = g;

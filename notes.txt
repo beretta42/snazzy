@@ -1,3 +1,7 @@
+TODO:
+  * separate out rt from ct in widgets into different source files
+  * think about potentially separating ct compile method into further files?
+
 
 draw_widget
 layout_widget
