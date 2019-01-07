@@ -78,7 +78,10 @@ struct widget_s {
     struct widget_ct_s *ct;
 };
 
-void new_radio(widget *w, widget *g);
+void new_radio(widget *w,
+	       widget *g,
+	       void (*cb)(widget *w, unsigned char state)
+	       );
 void new_menu(widget *w, widget *g);
 void new_area(widget *w);
 void new_button(widget *w, void (*cb)(widget *w));

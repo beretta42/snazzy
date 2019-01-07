@@ -29,6 +29,19 @@ void xcheck2_clicked(widget *w, unsigned char state){
     printf("check state %d\n", state);
 }
 
+void xrad1_clicked(widget *w, unsigned char state){
+    printf("radio state %d\n", state);
+}
+
+void xrad2_clicked(widget *w, unsigned char state){
+    printf("radio state %d\n", state);
+}
+
+void xrad3_clicked(widget *w, unsigned char state){
+    printf("radio state %d\n", state);
+}
+
+
 #include "test.c"
 
 int main(int argc, char *argv[]) {

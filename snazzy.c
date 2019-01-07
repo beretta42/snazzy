@@ -286,6 +286,10 @@ void do_cancel(widget *w) {
 }
 
 void do_check(widget *w, unsigned char state) {
+    printf("check clicked\n");
+}
+
+void do_radio(widget *w, unsigned char state) {
     printf("radio clicked\n");
 }
 
@@ -309,7 +313,7 @@ int main(int argc, char *argv[]) {
     xlab6 = alloc_widget("xlab6");
     xrad1 = alloc_widget("xrad1");
     xlab7 = alloc_widget("xlab7");
-    xrad2 = alloc_widget("xtad2");
+    xrad2 = alloc_widget("xrad2");
     xlab8 = alloc_widget("xlab8");
     xrad3 = alloc_widget("xrad3");
     xlab9 = alloc_widget("xlab9");
@@ -348,17 +352,17 @@ int main(int argc, char *argv[]) {
     pack_widget(xcheck2, xlab6);
     pack_widget(root, xcheck2);
 
-    new_radio(xrad1,NULL);
+    new_radio(xrad1,NULL, do_radio);
     new_label(xlab7, "Radio");
     pack_widget(xrad1, xlab7);
     pack_widget(root, xrad1);
 
-    new_radio(xrad2, xrad1);
+    new_radio(xrad2, xrad1, do_radio);
     new_label(xlab8, "buttons");
     pack_widget(xrad2, xlab8);
     pack_widget(root, xrad2);
 
-    new_radio(xrad3, xrad1);
+    new_radio(xrad3, xrad1, do_radio);
     new_label(xlab9, "are awesome.");
     pack_widget(xrad3, xlab9);
     pack_widget(root, xrad3);

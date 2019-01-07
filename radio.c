@@ -66,6 +66,11 @@ static void compile(widget *w) {
     else
 	printf("\t\tNULL,\n");
 
+    if (w->data.radio.clicked)
+	printf("\t\t%s_clicked,\n", w->ct->name);
+    else
+	printf("\t\tNULL,\n");
+    
     printf("\t},\n");
 }
 
@@ -84,9 +89,13 @@ static void clicked(widget *w){
     widget *grp = w->data.radio.group;
     widget *sel = grp->data.radio.sel;
     sel->data.radio.state = 0;
+    if (sel->data.radio.clicked)
+	sel->data.radio.clicked(sel, sel->data.radio.state);
     draw(sel);
     grp->data.radio.sel = w;
     w->data.radio.state = -1;
+    if (w->data.radio.clicked)
+	w->data.radio.clicked(w, w->data.radio.state);
     draw(w);
 }
 
@@ -101,13 +110,16 @@ struct vmt_s radio_vmt = {
 };
 
 
-void new_radio(widget *w, widget *g) {
+void new_radio(widget *w,
+	       widget *g,
+	       void (*cb)(widget *w, unsigned char state)) {
     struct radio_data *d = (struct radio_data *)&w->data;
     w->vmt = &radio_vmt;
     w->flags |= S_MOUSE;
     w->ct->layout = layout;
     w->ct->set = set;
     w->ct->compile = compile;
+    d->clicked = cb;
     /* attaching to another group leader? */
     if (g) {
 	d->group = g;
