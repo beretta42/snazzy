@@ -21,6 +21,14 @@ void xbut3_clicked(widget *w){
     printf("soon.\n");
 };
 
+void xcheck1_clicked(widget *w, unsigned char state){
+    printf("check state %d\n", state);
+}
+
+void xcheck2_clicked(widget *w, unsigned char state){
+    printf("check state %d\n", state);
+}
+
 #include "test.c"
 
 int main(int argc, char *argv[]) {

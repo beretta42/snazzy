@@ -55,6 +55,7 @@ static void down(widget *w){
 static void clicked(widget *w){
     struct check_data *d = (struct check_data *)&w->data;
     d->state = ~d->state;
+    if (w->data.check.clicked) w->data.check.clicked(w,d->state);
     draw(w);
 }
 
@@ -66,6 +67,10 @@ static void compile(widget *w) {
     printf("\t&check_vmt,\n");
     printf("\t.data.check = {\n");
     printf("\t\t%d,\n", w->data.check.state);
+    if (w->ct->name)
+	printf("\t\t%s_clicked,\n", w->ct->name);
+    else
+	printf("\t\tNULL,\n");
     printf("\t},\n");
 }
 
@@ -78,9 +83,10 @@ struct vmt_s check_vmt = {
     noop,
 };
 
-void new_check(widget *w) {
+void new_check(widget *w, void (*cb)(widget *w, unsigned char state)) {
     w->vmt = &check_vmt;
     w->flags |= S_MOUSE;
+    w->data.check.clicked = cb;
     w->ct->layout = layout;
     w->ct->set = set;
     w->ct->compile = compile;

@@ -285,6 +285,9 @@ void do_cancel(widget *w) {
     exit(0);
 }
 
+void do_check(widget *w, unsigned char state) {
+    printf("radio clicked\n");
+}
 
 int main(int argc, char *argv[]) {
     int ret;
@@ -335,12 +338,12 @@ int main(int argc, char *argv[]) {
     pack_widget(root, xmenu1);
     pack_widget(root, xarea1);
     
-    new_check(xcheck1);
+    new_check(xcheck1, do_check);
     new_label(xlab5, "checky");
     pack_widget(xcheck1, xlab5);
     pack_widget(root, xcheck1);
 
-    new_check(xcheck2);
+    new_check(xcheck2, do_check);
     new_label(xlab6, "no check me!");
     pack_widget(xcheck2, xlab6);
     pack_widget(root, xcheck2);

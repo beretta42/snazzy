@@ -83,6 +83,6 @@ void new_menu(widget *w, widget *g);
 void new_area(widget *w);
 void new_button(widget *w, void (*cb)(widget *w));
 void new_label(widget *w, char *s);
-void new_check(widget *w);
+void new_check(widget *w, void (*cb)(widget *w, unsigned char state));
 
 #endif /* SNAZZY_H */
