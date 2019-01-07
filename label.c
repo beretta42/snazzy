@@ -5,8 +5,8 @@
 #include "snazzy.h"
 #include "tgi.h"
 
-/* fixme: no, no, no */
-#include "/home/beretta/C/platotermCoCo/src/coco2/font.c"
+/* fixme: other modules may want font.c too ? */
+#include "font.c"
 
 
 void draw(widget *w) {
