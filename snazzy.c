@@ -293,6 +293,10 @@ void do_radio(widget *w, unsigned char state) {
     printf("radio clicked\n");
 }
 
+void do_item(widget *w){
+    printf("do item\n");
+}
+
 int main(int argc, char *argv[]) {
     int ret;
     
@@ -330,12 +334,18 @@ int main(int argc, char *argv[]) {
 
     new_area(xarea1);
     xarea1->flags |= S_VERT;
+    new_menuitem(xitem1, do_item);
+    new_menuitem(xitem2, do_item);
+    new_menuitem(xitem3, do_item);
     new_label(xlab10, "Open");
     new_label(xlab11, "Close");
     new_label(xlab12, "Save");
-    pack_widget(xarea1, xlab10);
-    pack_widget(xarea1, xlab11);
-    pack_widget(xarea1, xlab12);
+    pack_widget(xitem1, xlab10);
+    pack_widget(xitem2, xlab11);
+    pack_widget(xitem3, xlab12);
+    pack_widget(xarea1, xitem1);
+    pack_widget(xarea1, xitem2);
+    pack_widget(xarea1, xitem3);
     new_label(xlab13, "File");
     new_menu(xmenu1, xarea1);
     pack_widget(xmenu1, xlab13);

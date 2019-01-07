@@ -13,6 +13,7 @@ extern widget myroot;
 #include "radio.h"
 #include "menu.h"
 #include "area.h"
+#include "menuitem.h"
 
 void draw_widget(widget *w);
 void hide_widget(widget *w);
@@ -83,6 +84,7 @@ void new_radio(widget *w,
 	       void (*cb)(widget *w, unsigned char state)
 	       );
 void new_menu(widget *w, widget *g);
+void new_menuitem(widget *w, void (*cb)(widget *w));
 void new_area(widget *w);
 void new_button(widget *w, void (*cb)(widget *w));
 void new_label(widget *w, char *s);

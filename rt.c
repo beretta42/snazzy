@@ -41,6 +41,18 @@ void xrad3_clicked(widget *w, unsigned char state){
     printf("radio state %d\n", state);
 }
 
+void xitem1_clicked(widget *w){
+    printf("item clicked\n");
+}
+
+void xitem2_clicked(widget *w){
+    printf("item clicked\n");
+}
+
+void xitem3_clicked(widget *w){
+    printf("item clicked\n");
+}
+
 
 #include "test.c"
 
