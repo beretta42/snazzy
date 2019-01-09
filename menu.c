@@ -62,19 +62,13 @@ static void down(widget *w){
 
 static void clicked(widget *w){
     widget *pop = w->data.menu.popup;
-    if (w->data.menu.state) {
-	up(w);
-	w->data.menu.state = 0;
-    }
-    else {
-	pop->flags &= ~S_HIDDEN;
-	ll_cset(1);
-	ll_bar(pop->x, pop->y, pop->w, pop->h);
-	ll_cset(0);
-	draw_widget(pop);
-	dialog = pop;
-	w->data.menu.state = 1;
-    }
+    pop->flags &= ~S_HIDDEN;
+    ll_cset(1);
+    ll_bar(pop->x, pop->y, pop->w, pop->h);
+    ll_cset(0);
+    draw_widget(pop);
+    dialog = pop;
+    w->data.menu.state = 1;
 }
 
 static void move(widget *w){
