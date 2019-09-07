@@ -1,13 +1,13 @@
-snazzy: snazzy.c
-	$(CC) -lSDL2 -o snazzy snazzy.c radio.c menu.c area.c layout.c \
-	button.c label.c check.c menuitem.c
+all: snazzy
 
-test.c: snazzy
-	./snazzy > test.c
+snazzy: snazzy.c test.h snazzy.h
+	$(CC) -lSDL2 -o snazzy snazzy.c font.c
 
-rt: rt.c test.c
-	$(CC) -lSDL2 -o rt rt.c label.c button.c check.c radio.c area.c \
-	menu.c snazzyrt.c menuitem.c
+test.h: guipe/guipe
+	cd guipe; ./guipe > ../test.h
+
+guipe/guipe:  guipe/guipe.c
+	$(make) -C guipe all
 
 clean:
-	rm -f *.o snazzy *~ rt test.c
+	rm -f *.o snazzy *~ test.h

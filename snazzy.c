@@ -4,6 +4,13 @@
 #include <string.h>
 
 /* 
+
+   Snazzy - a GUI 
+
+
+*/
+
+/* 
    Lowlevel graphics routines
 
 */
@@ -39,7 +46,12 @@ void ll_deinit(void) {
 
 
 void ll_clear(void){
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0,255,0));
+    if (pen) {
+	SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0,255,0));
+    }
+    else {
+	SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0,0,0));
+    }
 }
 
 void ll_setpixel(int x, int y) {
@@ -74,10 +86,11 @@ void ll_bar(int x, int y, int w, int h){
 }
 
 void ll_box(int x, int y, int w, int h){
-    ll_hline(x, y, w-1);
-    ll_hline(x, y+h-1, w-1);
-    ll_vline(x, y, h-1);
-    ll_vline(x+w-1, y, h-1);
+    ll_hline(x, y, w);
+    ll_hline(x, y+h-1, w);
+    ll_vline(x, y, h);
+    ll_vline(x+w-1, y, h);
+
 }
 
 void ll_char_draw(int x, int y, unsigned char *p){
@@ -98,6 +111,22 @@ void ll_char_draw(int x, int y, unsigned char *p){
     }
 }
 
+extern unsigned char font[];
+
+void ll_puts(int x, int y, char *t) {
+    int n = strlen(t);
+    while (n--) {
+	ll_char_draw(x, y, font + (*t-32)*6);
+	x += 4;
+	t++;
+    }
+}
+
+void ll_draw_back(int x, int y, int w, int h) {
+    ll_cset(0);
+    ll_bar(x,y,w,h);
+    ll_cset(1);
+}
 
 /**************** 
    Widgets
@@ -105,342 +134,371 @@ void ll_char_draw(int x, int y, unsigned char *p){
 
 #include "snazzy.h"
 
-void noop(widget *w) {
-}
+#define MAX(a,b) (a > b ? a : b)
+#define MIN(a,b) (a < b ? a : b)
 
-void set_noop(widget *w, widget *c){
-}
+void draw_all(widget *w);
+void draw_coll(widget *w);
+void bound(widget *w);
 
+int bx1;
+int by1;
+int bx2;
+int by2;
+widget *focus;
+widget *mwidget;
+widget *wstack[16];
+int wstack_ptr = 0;
+int mx;
+int my;
 
-void draw_widget(widget *w){
-    if( w->flags & S_HIDDEN )
-	return;
-    w->vmt->draw(w);
-    widget *p = w->child;
-    while (p){
-	draw_widget(p);
-	p = p->sib;
-    }
-}
-
-
-widget *root;
-widget *dialog;
-
-void draw_root(widget *w){
-    ll_clear();
-}
-
-struct vmt_s root_vmt = {
-    draw_root,
-    noop,
-    noop,
-    noop,
-    noop,
-    noop,
+static unsigned char poplist_up[] = {
+    0b00000000,
+    0b11111110,
+    0b01000100,
+    0b00101000,
+    0b00010000,
+    0b00000000,
 };
 
-int s_init(int w, int h) {
-    dialog = root = alloc_widget("myroot");
-    root->w = w;
-    root->h = h;
-    root->vmt = &root_vmt;
-    root->ct->layout = noop;
-    root->ct->set = set_noop;
+static unsigned char icon_hslide[] = {
+    0b01111000,
+    0b11111100,
+    0b11111100,
+    0b11111100,
+    0b11111100,
+    0b01111000,
+};
+
+
+void push_focus(widget *w) {
+    wstack[wstack_ptr++] = focus;
+    focus = w;
+}
+
+void pull_focus(void) {
+    focus = wstack[--wstack_ptr];
+}
+
+void draw_back(widget *w) {
+    ll_draw_back(w->x, w->y, w->w, w->h);
 }
 
 
-/* redraw all widgets in an area */
-void draw_area(int x, int y, int w, int h) {
-    widget *p = root->child;
-    ll_bar(x,y,w,h);
-    ll_cset(0);
-    while (p) {
-	if ( x >= p->x + p->w     ||
-	     x + w <  p->x        ||
-	     y >= p->y + p->h     ||
-	     y + h < p->y
-	     );
-	else {
-	    draw_widget(p);
-	}
-	p = p->sib;
+void do_vbox(widget *w, int ev) {
+}
+
+void do_hbox(widget *w, int ev) {
+}
+
+void do_label(widget *w, int ev) {
+    switch(ev) {
+    case EV_DRAW:
+	ll_puts(w->x1, w->y1, w->text);
     }
 }
 
-/* hide all widgets in a widget */
-void hide_widget(widget *w) {
-    ll_cset(1);
-    ll_bar(w->x, w->y, w->w, w->h);
-    w->flags += S_HIDDEN;
-}
-
-
-/* is point (x,y) with in widget W, or any of its */
-widget *collide(widget *w, int x, int y) {
-    widget *p = dialog->child;
-    while (p){
-	if (p->flags & S_MOUSE &&
-	    x >= p->x          &&
-	    x < p->x + p->w    &&
-	    y >= p->y          &&
-	    y < p->y + p->h
-	    )
-	    return p;
-	p = p->sib;
+void do_button(widget *w, int ev) {
+    switch(ev) {
+    case EV_DRAW:
+	draw_back(w);
+	ll_box(w->x, w->y, w->w, w->h);
+	ll_puts(w->x1, w->y1, w->text);
+	break;
+    case EV_DOWN:
+	draw_back(w);
+	ll_box(w->x, w->y, w->w, w->h);
+	ll_puts(w->x1+1, w->y1+1, w->text);
+	break;
+    case EV_UP:
+	do_button(w, EV_DRAW);
+	break;
+    case EV_CLICK:
+	fprintf(stderr,"button clicked\n");
+	break;
+    case EV_DOUBLE:
+	fprintf(stderr,"button double clicked\n");
+	break;
     }
-    return NULL;
 }
 
 
 /*
-  Main / Testing
+
+  poplist widget
+
 */
 
-
-
-widget *xlab1;
-widget *xlab2;
-widget *xlab3;
-widget *xbut1;
-widget *xbut2;
-widget *xbut3;
-widget *xlab4;
-widget *xcheck1;
-widget *xlab5;
-widget *xcheck2;
-widget *xlab6;
-widget *xrad1;
-widget *xlab7;
-widget *xrad2;
-widget *xlab8;
-widget *xrad3;
-widget *xlab9;
-widget *xlab10;
-widget *xlab11;
-widget *xlab12;
-widget *xlab13;
-widget *xmenu1;
-widget *xitem1;
-widget *xitem2;
-widget *xitem3;
-widget *xarea1;
-
-
-void compile_widget(widget *w){
-    char *n;
-    printf("widget %s;\n", w->ct->name);
-    if (w->parent)
-	printf("widget %s;\n", w->parent->ct->name);
-    if (w->sib)
-	printf("widget %s;\n", w->sib->ct->name);
-    /* print all the children first */
-    widget *p = w->child;
-    while (p) {
-	compile_widget(p);
-	p = p->sib;
+widget *poplist;
+void do_poplist(widget *w, int ev) {
+    switch (ev) {
+    case EV_DRAW:
+	draw_back(w);
+	ll_char_draw(w->x1+1, w->y1+1, poplist_up);
+	ll_puts(w->x1+9, w->y1+1, w->text);
+	break;
+    case EV_DOWN:
+	draw_back(w);
+	ll_char_draw(w->x1+2, w->y1+2, poplist_up);
+	ll_puts(w->x1+10, w->y1+2, w->text);
+	break;
+    case EV_UP:
+	do_poplist(w, EV_DRAW);
+	break;
+    case EV_CLICK:
+	w->flags ^= FL_NODRAW;
+	bound(w);
+	ll_draw_back(bx1, by1, bx2-bx1, by2-by1);
+	if (w->flags & FL_NODRAW) {
+	    pull_focus();
+	    draw_coll(focus);
+	}
+	else {
+	    poplist = w;
+	    draw_all(w);
+	    ll_box(bx1, by1, bx2-bx1, by2-by1);
+	    push_focus(w);
+	}
+	break;
     }
-    /* print struct header */
-    printf("widget %s = {\n", w->ct->name);
-    /* print my parent */
-    if (w->parent)
-	printf("\t&%s,\n", w->parent->ct->name);
-    else
-	printf("\tNULL,\n");
-    /* print my sibling */
-    if (w->sib)
-        printf("\t&%s,\n", w->sib->ct->name);
-    else
-        printf("\tNULL,\n");
-
-    /* print my child */
-    if (w->child)
-        printf("\t&%s,\n", w->child->ct->name);
-    else
-        printf("\tNULL,\n");
-    /* flags */
-    printf("\t0x%x,\n", w->flags);
-    /* coords */
-    printf("\t%d,\n", w->x);
-    printf("\t%d,\n", w->y);
-    printf("\t%d,\n", w->w);
-    printf("\t%d,\n", w->h);
-    /* call widget's compile method handling the private area */
-    if (w->ct->compile) w->ct->compile(w);
-    /* print trailer */
-    printf("};\n\n");
 }
 
-void do_ok(widget *w) {
-    printf("ok clicked!\n");
+
+/*
+  Pop Item Widget 
+
+*/
+
+void do_popitem(widget *w, int ev){
+    switch (ev) {
+    case EV_DRAW:
+	draw_back(w);
+	do_label(w, ev);
+	break;
+    case EV_DOWN:
+	draw_back(w);
+	ll_puts(w->x1+1, w->y1+1, w->text);
+	break;
+    case EV_UP:
+	do_popitem(w, EV_DRAW);
+	break;
+    case EV_CLICK:
+        poplist->text = w->text;
+	poplist->d = w->d;
+	do_poplist(poplist, ev);
+	fprintf(stderr,"d = %d\n", w->d);
+	break;
+    }
 }
 
-void do_accept(widget *w) {
-    printf("accept clicked!\n");
+/* 
+
+horizontal slider
+
+*/
+void do_hslide(widget *w, int ev) {
+    int v,x;
+    switch (ev) {
+    case EV_MOVE:
+	w->d = mx - 3;
+    case EV_DRAW:
+	draw_back(w);
+	// constrain x
+	w->d = MIN(w->d,w->x+w->w-6);
+	w->d = MAX(w->d,w->x);
+	ll_hline(w->x+3, w->y+5, w->w-6);
+	ll_char_draw(w->d, w->y+2, icon_hslide);
+	break;
+    case EV_DOWN:
+	x = mx - 3 - w->d;
+	if (abs(x) > 3) {
+	    v = (w->w - 6) / 10;
+	    w->d += x < 0 ? -v : v;
+	} else {
+	    w->d = mx - 3;
+	}
+	mwidget = w;
+	do_hslide(w, EV_DRAW);
+	break;
+    case EV_UP:
+	v = (w->d-w->x) * w->x1 / (w->w-6);
+	fprintf(stderr,"hslide = %d\n", v);
+	mwidget = NULL;
+	break;
+    }
 }
 
-void do_cancel(widget *w) {
-    printf("cancel clicked\n");
+
+    
+void bound(widget *w) {
+    widget *n = w->child;
+    bx1 = n->x;
+    by1 = n->y;
+    bx2 = n->x + n->w;
+    by2 = n->y + n->h;
+    for (; n; n = n->next) {
+	bx1 = MIN(bx1, n->x);
+	by1 = MIN(by1, n->y);
+	bx2 = MAX(bx2, n->x + n->w);
+	by2 = MAX(by2, n->y + n->h);
+    }
+}
+
+
+void draw_coll(widget *w) {
+    widget *n;
+    if ( w->x > bx2 ||
+    	 w->y > by2 ||
+    	 w->x + w->w < bx1 ||
+    	 w->y + w->h < by1 )
+    	return;
+    if ((w->flags & FL_NODRAW) == 0) {
+	for (n = w->child; n; n = n->next) {
+	    draw_coll(n);
+	    n->doev(n, EV_DRAW);
+	}
+    }
+    w->doev(w, EV_DRAW);
+}
+
+void draw_all(widget *w) {
+    widget *n;
+    if ((w->flags & FL_NODRAW) == 0) {
+	for (n = w->child; n; n = n->next) {
+	    draw_all(n);
+	    n->doev(n, EV_DRAW);
+	}
+    }
+    w->doev(w, EV_DRAW);
+}
+
+int collide(widget *w, int x, int y) {
+    if ( x < w->x ||
+	 x > w->x + w->w ||
+	 y < w->y ||
+	 y > w->y + w->h )
+	return 0 ;
+    return 1;
+}
+
+widget *collide_all(widget *head, int x, int y) {
+    widget *n;
+    widget *t;
+    if (head == NULL) return NULL;
+    for (n = head->child; n; n = n->next) {
+	if (collide(n, x, y)) {
+	    if (n->flags & FL_CLICKABLE) {
+		return n;
+	    }
+	    else {
+		t = collide_all(n, x, y);
+		if (t) return t;
+	    }
+	}
+    }
+    if (collide(head,x,y)) return head;
+    return NULL;
+}
+
+
+widget *clicked;
+int time;
+int dtime = 500;
+widget *down;
+
+/* called to send event to widget system 
+     w = root widget
+     e = input event
+     x,y = coordinates of input event (if any)
+*/
+void send_uevent(int e, int x, int y) {
+    widget *n = collide_all(focus, x, y);
+    mx = x; my = y;
+    if (n) {
+	switch (e) {
+	case UEV_MOVE:
+	    n->doev(n, EV_MOVE);
+	    break;
+	case UEV_DOWN:
+	    n->doev(n, EV_DOWN);
+	    down = n;
+	    break;
+	case UEV_UP:
+	    if (n != down) 
+		down->doev(down, EV_UP);
+	    else {
+		n->doev(n, EV_UP);
+		n->doev(n, EV_CLICK);
+		if (n == clicked && (SDL_GetTicks() - time) < dtime) {
+		    n->doev(n, EV_DOUBLE);
+		    clicked = NULL;
+		}
+		else {
+		    clicked = n;
+		    time = SDL_GetTicks();
+		}
+	    }
+	    break;
+	}
+    }
+    else {
+	if (down) down->doev(down, EV_UP);
+	down == NULL;
+	// fixme: I'm not sure this is great here
+	if (wstack_ptr) {
+	    focus->doev(focus, EV_CLICK);
+	}
+    }
+}
+
+/*
+  Main / Testing
+*/
+#include "test.h"
+
+void do_quit( ) {
     ll_deinit();
     exit(0);
-}
-
-void do_check(widget *w, unsigned char state) {
-    printf("check clicked\n");
-}
-
-void do_radio(widget *w, unsigned char state) {
-    printf("radio clicked\n");
-}
-
-void do_item(widget *w){
-    printf("do item\n");
 }
 
 int main(int argc, char *argv[]) {
     int ret;
     
     ll_init();
-    s_init(256,192);
-    ll_cset(0);
+    ll_cset(1);
 
-    xlab1 = alloc_widget("xlab1");
-    xlab2 = alloc_widget("xlab2");
-    xlab3 = alloc_widget("xlab3");
-    xbut1 = alloc_widget("xbut1");
-    xbut2 = alloc_widget("xbut2");
-    xbut3 = alloc_widget("xbut3");
-    xlab4 = alloc_widget("xlab4");
-    xcheck1 = alloc_widget("xcheck1");
-    xlab5 = alloc_widget("xlab5");
-    xcheck2 = alloc_widget("xcheck2");
-    xlab6 = alloc_widget("xlab6");
-    xrad1 = alloc_widget("xrad1");
-    xlab7 = alloc_widget("xlab7");
-    xrad2 = alloc_widget("xrad2");
-    xlab8 = alloc_widget("xlab8");
-    xrad3 = alloc_widget("xrad3");
-    xlab9 = alloc_widget("xlab9");
-    xlab10 = alloc_widget("xlab10");
-    xlab11 = alloc_widget("xlab11");
-    xlab12 = alloc_widget("xlab12");
-    xlab13 = alloc_widget("xlab13");
-    xmenu1 = alloc_widget("xmenu1");
-    xitem1 = alloc_widget("xitem1");
-    xitem2 = alloc_widget("xitem2");
-    xitem3 = alloc_widget("xitem3");
-    xarea1 = alloc_widget("xitem4");
-     
-
-    new_area(xarea1);
-    xarea1->flags |= S_VERT;
-    new_menuitem(xitem1, do_item);
-    new_menuitem(xitem2, do_item);
-    new_menuitem(xitem3, do_item);
-    new_label(xlab10, "Open");
-    new_label(xlab11, "Close");
-    new_label(xlab12, "Save");
-    pack_widget(xitem1, xlab10);
-    pack_widget(xitem2, xlab11);
-    pack_widget(xitem3, xlab12);
-    pack_widget(xarea1, xitem1);
-    pack_widget(xarea1, xitem2);
-    pack_widget(xarea1, xitem3);
-    new_label(xlab13, "File");
-    new_menu(xmenu1, xarea1);
-    pack_widget(xmenu1, xlab13);
-    pack_widget(root, xmenu1);
-    pack_widget(root, xarea1);
-    
-    new_check(xcheck1, do_check);
-    new_label(xlab5, "checky");
-    pack_widget(xcheck1, xlab5);
-    pack_widget(root, xcheck1);
-
-    new_check(xcheck2, do_check);
-    new_label(xlab6, "no check me!");
-    pack_widget(xcheck2, xlab6);
-    pack_widget(root, xcheck2);
-
-    new_radio(xrad1,NULL, do_radio);
-    new_label(xlab7, "Radio");
-    pack_widget(xrad1, xlab7);
-    pack_widget(root, xrad1);
-
-    new_radio(xrad2, xrad1, do_radio);
-    new_label(xlab8, "buttons");
-    pack_widget(xrad2, xlab8);
-    pack_widget(root, xrad2);
-
-    new_radio(xrad3, xrad1, do_radio);
-    new_label(xlab9, "are awesome.");
-    pack_widget(xrad3, xlab9);
-    pack_widget(root, xrad3);
-
-    new_label(xlab1, "Ok");
-    new_label(xlab2, "Cancel");
-    new_label(xlab3, "Accept");
-    new_label(xlab4, "Select One");
-    new_button(xbut1, do_ok);
-    new_button(xbut2, do_cancel);
-    new_button(xbut3, do_accept);
-    pack_widget(root,xlab4);
-    pack_widget(root,xbut1);
-    pack_widget(root,xbut2);
-    pack_widget(root,xbut3);
-    pack_widget(xbut1,xlab1);
-    pack_widget(xbut2,xlab2);
-    pack_widget(xbut3,xlab3);
-
-
-    root->flags = S_VERT;
-    layout_widget(root);
-    set_widget(root, 2, 2);
-    //list_widget(root);
-    compile_widget(root);
-    draw_widget(root);
-
+    focus = &noname0;
+    draw_all(focus);
     SDL_UpdateWindowSurface(win);
 
-    /* event loop */
+    /* send SDL events to widget system */
     SDL_Event e;
-    widget *cd = NULL;
-    char *s;
-    widget *f;
     while(1) {
 	ret = SDL_PollEvent(&e);
 	if (ret == 0)
 	    continue;
-	if (e.type == SDL_MOUSEMOTION && e.motion.state &&
-	    cd ){
-	    cd->vmt->move(cd);
-	}
-	if (e.type == SDL_QUIT)
-	    break;
-	if (e.type == SDL_MOUSEBUTTONDOWN){
-	    widget *w;
-	    w = collide(dialog, e.button.x/2,e.button.y/2);
-	    if (w) {
-		w->vmt->down(w);
-		cd = w;
+	if (e.type == SDL_MOUSEMOTION ){
+	    if (mwidget) {
+		send_uevent(UEV_MOVE, e.motion.x/2, e.motion.y/2);
 	    }
-	    SDL_UpdateWindowSurface(win);
+	}
+	if (e.type == SDL_QUIT) {
+	    break;
+	}
+	if (e.type == SDL_MOUSEBUTTONDOWN){
+	    send_uevent(UEV_DOWN, e.button.x/2, e.button.y/2);
 	}
 	if (e.type == SDL_MOUSEBUTTONUP){
-	    widget *w;
-	    w = collide(dialog, e.button.x/2,e.button.y/2);
-	    if (w) {
-		if (w == cd){
-		    cd->vmt->up(cd);
-		    cd->vmt->clicked(cd);
-		}
-		else {
-		    cd->vmt->up(cd);
-		}
-	    }
-	    else {
-		if (cd) cd->vmt->up(cd);
-		cd = NULL;
+	    send_uevent(UEV_UP, e.button.x/2, e.button.y/2);
+	}
+	if (e.type == SDL_TEXTINPUT) {
+	    fprintf(stderr,"%d\n", e.text.text[0]);
+	    if (e.text.text[0] == 'q') break;
+	    if (e.text.text[0] == 'r') {
+		ll_cset(0);
+		ll_clear();
+		draw_all(focus);
+		continue;
 	    }
 	}
 	SDL_UpdateWindowSurface(win);

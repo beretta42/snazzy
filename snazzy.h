@@ -2,92 +2,52 @@
 #define SNAZZY_H
 
 typedef struct widget_s widget;
-typedef struct widget_ct_s widget_ct;
-typedef union widget_data_u widget_data;
-
-extern widget myroot;
-
-#include "button.h"
-#include "label.h"
-#include "check.h"
-#include "radio.h"
-#include "menu.h"
-#include "area.h"
-#include "menuitem.h"
-
-void draw_widget(widget *w);
-void hide_widget(widget *w);
-void draw_area(int x, int y, int w, int h);
-void set_widget(widget *w, int x, int y);
-void layout_widget(widget *w);
-void pack_widget(widget *p, widget *c);
-widget *alloc_widget(char *name);
-void snazzy_go(void);
-int s_init(int w, int h);
-
-extern widget *root;
-extern widget *dialog;
-
-
-union widget_data_u {
-    struct label_data label;
-    struct radio_data radio;
-    struct menu_data menu;
-    struct check_data check;
-    struct button_data button;
-};
-
-struct vmt_s {
-    void (*draw)(widget *w);
-    void (*down)(widget *w);
-    void (*up)(widget *w);
-    void (*clicked)(widget *w);
-    void (*move)(widget *w);
-    void (*key)(widget *w);
-};
-void noop(widget *w);
-void set_noop(widget *w, widget *c);
-
-struct widget_ct_s {
-    unsigned char type;           /* type of widget */
-#define WT_LABEL  0
-#define WT_BUTTON 1
-#define WT_CHECK  2
-    widget *rt;                   /* ptr to run-time */
-    char *name;                   /* ptr to unique compiler label */
-    void (*layout)(widget *w);    /* ptr to layout method */
-    void (*set)(widget *w, widget *p);       /* ptr to set method */
-    void (*compile)(widget *w);   /* ptr to compile method */
-};
 
 struct widget_s {
-    widget *parent;
-    widget *sib;
-    widget *child;
-    int flags;
-    /* fixme: some of these flags maybe belong in widget_ct */
-#define S_VERT   1      /* set if vertical layout, clear if horizontal */
-#define S_MOUSE  2      /* do we handle mouse events? */
-#define S_HIDDEN 4      /* don't draw me */
-#define S_OVER   8      /* don't take in account my size when laying out*/
     int x;
     int y;
     int w;
     int h;
-    struct vmt_s *vmt;
-    widget_data data;   /* class data */
-    struct widget_ct_s *ct;
+    void (*doev)(widget *w, int ev);
+    //    void (*uev)(widget *w, int ev);
+    widget *next;
+    widget *child;
+    char *text;
+    int x1;
+    int y1;
+    int flags;
+    int d;
 };
 
-void new_radio(widget *w,
-	       widget *g,
-	       void (*cb)(widget *w, unsigned char state)
-	       );
-void new_menu(widget *w, widget *g);
-void new_menuitem(widget *w, void (*cb)(widget *w));
-void new_area(widget *w);
-void new_button(widget *w, void (*cb)(widget *w));
-void new_label(widget *w, char *s);
-void new_check(widget *w, void (*cb)(widget *w, unsigned char state));
+/* widget types */
+#define TY_VBOX    0
+#define TY_HBOX    1
+#define TY_LABEL   2
+#define TY_BUTTON  3
+#define TY_POPLIST 4
+#define TY_POPITEM 5
+#define TY_HSLIDE  6
+
+/* widget flags */
+#define FL_CLICKABLE  1        /* this widget can do mouse events */
+#define FL_NODRAW     2        /* don't recurse thru children while drawing */ 
+
+/* event types 
+  These event are send to from the engine to widgets
+*/
+#define EV_DRAW   0       // draw 
+#define EV_DOWN   1       // pen/mouse down
+#define EV_UP     2       // pen/mouse up
+#define EV_CLICK  3       // clicked
+#define EV_DOUBLE 4       // double clicked
+#define EV_MOVE   5       // mouse moved
+
+/* uevent types 
+  These are events passed from the graphcial i/o system 
+  to the engine
+*/
+#define UEV_DOWN 0
+#define UEV_UP   1
+#define UEV_MOVE 2
 
 #endif /* SNAZZY_H */

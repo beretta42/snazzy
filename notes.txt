@@ -1,12 +1,12 @@
-TODO:
-  * separate out rt from ct in widgets into different source files
-  * think about potentially separating ct compile method into further files?
 
 
-draw_widget
-layout_widget
-set_widget
-down
-up
-clicked
-move
+Three event interfaces:
+
+1. from low-level IO from app/system to GUI
+     mouse/keyboard events
+2. from GUI to widgets
+     
+3. from GUI to userspace
+
+
+If we want loadable forms, we can't transmit (load) meaningful pointers.  We can resolve an index/relative at load-time.
