@@ -1,0 +1,26 @@
+# this is a comment
+
+vbox
+width 256
+height 192
+
+{
+   poplist example "example poplist" {
+       popitem "***Cool!***"
+       popitem "***BEANS***"
+       popitem "The quick brown fox"
+   }
+   hbox { label "one" maxw label "two" maxw label "three" maxw }
+   hbox { label "four" label "five" label "six" maxw right }
+   vbox {
+       label "seven" maxh top
+       label "eight" maxh top
+       label "nine"  max 
+   }
+   hbox { label "Volume" hslide volume valmax 30 width 70 }
+   hbox height 20 { button ok "Ok"  button save "Save"
+   	hbox maxw
+   	button quit "Quit" 
+   }
+}
+
