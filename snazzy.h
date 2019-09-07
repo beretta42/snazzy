@@ -9,14 +9,12 @@ struct widget_s {
     int w;
     int h;
     int type;
-    // void (*doev)(widget *w, int ev);
-    //    void (*uev)(widget *w, int ev);
     widget *next;
     widget *child;
+    int flags;
     char *text;
     int x1;
     int y1;
-    int flags;
     int d;
 };
 

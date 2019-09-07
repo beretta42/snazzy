@@ -697,6 +697,7 @@ void hprint_widget(widget *w) {
     static const char nstr[] = "NULL";
     char *t;
     printf("widget %s = {", w->ctext);
+    // x,y,w,h
     printf("%d, %d, %d, %d, ",
 	   w->x, w->y, w->w, w->h);
     // type
@@ -717,6 +718,8 @@ void hprint_widget(widget *w) {
     else {
 	printf("NULL, ");
     }
+    // run-time flags
+    printf("%d, ", w->rt_flags);
     // text
     if (w->text) {
 	printf("\"%s\", ", w->text);
@@ -726,8 +729,6 @@ void hprint_widget(widget *w) {
     }
     // alginment x,y
     printf("%d, %d, ", w->x1, w->y1);
-    // run-time flags
-    printf("%d, ", w->rt_flags);
     // run time integer data
     printf("%d, ", w->d);
     // tail
