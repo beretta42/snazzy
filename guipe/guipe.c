@@ -699,34 +699,8 @@ void hprint_widget(widget *w) {
     printf("widget %s = {", w->ctext);
     printf("%d, %d, %d, %d, ",
 	   w->x, w->y, w->w, w->h);
-    // doev
-    switch (w->type) {
-    case LABEL:
-	t = "do_label";
-	break;
-    case HBOX:
-	t = "do_hbox";
-	break;
-    case VBOX:
-	t = "do_vbox";
-	break;
-    case BUTTON:
-	t = "do_button";
-	break;
-    case POPLIST:
-	t = "do_poplist";
-	break;
-    case POPITEM:
-	t = "do_popitem";
-	break;
-    case HSLIDE:
-	t = "do_hslide";
-	break;
-    default:
-	t = "UNDEFINED";
-	break;
-    }
-    printf("%s, ", t);
+    // type
+    printf("%d, ", w->type);
     // user ev
     //printf("do_%s, ", w->ctext); 
     // next

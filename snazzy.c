@@ -140,6 +140,8 @@ void ll_draw_back(int x, int y, int w, int h) {
 void draw_all(widget *w);
 void draw_coll(widget *w);
 void bound(widget *w);
+void do_event(widget *w, int ev);
+
 
 int bx1;
 int by1;
@@ -328,6 +330,20 @@ void do_hslide(widget *w, int ev) {
     }
 }
 
+typedef void (*DOPTR)(widget *w, int ev);
+void do_event(widget *w, int ev) {
+    static DOPTR tab[TY_MAX] = {
+	do_vbox,
+	do_hbox,
+	do_label,
+	do_button,
+	do_poplist,
+	do_popitem,
+	do_hslide 
+	};
+    // fixme: check for out of bounds here
+    tab[w->type](w, ev);
+}
 
     
 void bound(widget *w) {
@@ -355,10 +371,10 @@ void draw_coll(widget *w) {
     if ((w->flags & FL_NODRAW) == 0) {
 	for (n = w->child; n; n = n->next) {
 	    draw_coll(n);
-	    n->doev(n, EV_DRAW);
+	    do_event(n, EV_DRAW);
 	}
     }
-    w->doev(w, EV_DRAW);
+    do_event(w, EV_DRAW);
 }
 
 void draw_all(widget *w) {
@@ -366,10 +382,10 @@ void draw_all(widget *w) {
     if ((w->flags & FL_NODRAW) == 0) {
 	for (n = w->child; n; n = n->next) {
 	    draw_all(n);
-	    n->doev(n, EV_DRAW);
+	    do_event(n, EV_DRAW);
 	}
     }
-    w->doev(w, EV_DRAW);
+    do_event(w, EV_DRAW);
 }
 
 int collide(widget *w, int x, int y) {
@@ -417,20 +433,20 @@ void send_uevent(int e, int x, int y) {
     if (n) {
 	switch (e) {
 	case UEV_MOVE:
-	    n->doev(n, EV_MOVE);
+	    do_event(n, EV_MOVE);
 	    break;
 	case UEV_DOWN:
-	    n->doev(n, EV_DOWN);
+	    do_event(n, EV_DOWN);
 	    down = n;
 	    break;
 	case UEV_UP:
 	    if (n != down) 
-		down->doev(down, EV_UP);
+		do_event(down, EV_UP);
 	    else {
-		n->doev(n, EV_UP);
-		n->doev(n, EV_CLICK);
+		do_event(n, EV_UP);
+		do_event(n, EV_CLICK);
 		if (n == clicked && (SDL_GetTicks() - time) < dtime) {
-		    n->doev(n, EV_DOUBLE);
+		    do_event(n, EV_DOUBLE);
 		    clicked = NULL;
 		}
 		else {
@@ -442,11 +458,11 @@ void send_uevent(int e, int x, int y) {
 	}
     }
     else {
-	if (down) down->doev(down, EV_UP);
+	if (down) do_event(down, EV_UP);
 	down == NULL;
 	// fixme: I'm not sure this is great here
 	if (wstack_ptr) {
-	    focus->doev(focus, EV_CLICK);
+	    do_event(focus, EV_CLICK);
 	}
     }
 }

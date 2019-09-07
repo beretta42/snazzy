@@ -8,7 +8,8 @@ struct widget_s {
     int y;
     int w;
     int h;
-    void (*doev)(widget *w, int ev);
+    int type;
+    // void (*doev)(widget *w, int ev);
     //    void (*uev)(widget *w, int ev);
     widget *next;
     widget *child;
@@ -27,6 +28,7 @@ struct widget_s {
 #define TY_POPLIST 4
 #define TY_POPITEM 5
 #define TY_HSLIDE  6
+#define TY_MAX     7
 
 /* widget flags */
 #define FL_CLICKABLE  1        /* this widget can do mouse events */
