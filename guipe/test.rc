@@ -17,7 +17,7 @@ height 192
        label "eight" maxh top
        label "nine"  max 
    }
-   hbox { label "Volume" hslide volume valmax 30 width 70 }
+   hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
    	button quit "Quit" 

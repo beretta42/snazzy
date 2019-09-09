@@ -10,3 +10,6 @@ void ll_vline(int x, int y, int h);
 void ll_bar(int x, int y, int w, int h);
 void ll_box(int x, int y, int w, int h);
 void ll_char_draw(int x, int y, unsigned char *p);
+void ll_puts(int x, int y, char *t);
+void ll_draw_back(int x, int y, int w, int h);
+void ll_loop(void);

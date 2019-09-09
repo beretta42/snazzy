@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -52,6 +53,8 @@ struct widget_s {
     int x1;
     int y1;
     int rt_flags;
+    int off;    /* data file offset to widget */
+    int toff;   /* data file offset to text string */
 };
 
 #define MAXW   1      /* maximize width to parent */
@@ -649,6 +652,10 @@ void do_valmax() {
     cur->x1 = getnumber();
 }
 
+void do_value() {
+    cur->d = getnumber();
+}
+
 typedef struct {
     char *txt;
     void (* call)(void);
@@ -677,6 +684,7 @@ command_t cmds[] = {
     { "bottom",      do_bottom },
     { "button",      do_button },
     { "valmax",      do_valmax },
+    { "value",       do_value },
     { NULL, NULL },
 };
 
@@ -735,6 +743,83 @@ void hprint_widget(widget *w) {
     printf("}; \n");
 }
 
+// print widget out as a datafile
+uint8_t datafile[1024];
+uint16_t oindex = 0;
+void dputi(int i) {
+    if (oindex > 1022) {
+	fprintf(stderr,"output buffer exhausted");
+	exit(1);
+    }
+    datafile[oindex++] = i>>8;
+    datafile[oindex++] = i & 255;
+}
+void dprint_widget(widget *w) {
+    w->off = oindex;    /* set widget's offset in data file */
+    dputi(w->x);
+    dputi(w->y);
+    dputi(w->w);
+    dputi(w->h);
+    dputi(w->type);
+    dputi((int)w->next);
+    dputi((int)w->child);
+    dputi(w->rt_flags);
+    dputi((int)w->text);
+    dputi(w->x1);
+    dputi(w->y1);
+    if (w->type == HSLIDE) {
+	dputi(w->x + (w->d * w->w / w->x1) - 3);
+    }
+    else dputi(w->d);
+    dputi(0); // app call reference (to be filled out by runtime)
+}
+// adjust widget pointers
+void dadjust(widget *w) {
+    widget *n;
+    if (w->next) {
+	datafile[w->off+10] = w->next->off >> 8;
+	datafile[w->off+11] = w->next->off & 255;
+    }
+    if (w->child) {
+	datafile[w->off+12] = w->child->off >> 8;
+	datafile[w->off+13] = w->child->off & 255;
+    }
+    if (w->text) {
+	datafile[w->off+16] = w->toff >> 8;
+	datafile[w->off+17] = w->toff & 255;
+    }
+    for (n = w->child; n; n = n->next)
+	dadjust(n);
+}
+// layout strings
+void dstring(widget *w) {
+    widget *n;
+    char *s,*d;
+    s = w->text;
+    d = datafile + oindex;
+    if (s) {
+	w->toff = oindex;
+	strcpy(d,s);
+	oindex += strlen(s) + 1;
+    }
+    for (n = w->child; n; n = n->next)
+	dstring(n);
+}
+// layout names
+void dnames(widget *w) {
+    widget *n;
+    char *s,*d;
+    s = w->ctext;
+    d = datafile + oindex;
+    if (s && strncmp(s, "noname", 6)) {
+	strcpy(d,s);
+	oindex += strlen(s) + 1;
+	dputi(w->off);
+    }
+    for (n = w->child; n; n = n->next)
+	dnames(n);
+}
+
 void declare(widget *w) {
     widget *n;
     printf("widget %s;\n", w->ctext);
@@ -744,7 +829,7 @@ void declare(widget *w) {
 
 void list(widget *w) {
     widget *n;
-     hprint_widget(w);
+     dprint_widget(w);
      for (n = w->child; n; n = n->next)
 	list(n);
 }
@@ -774,6 +859,15 @@ int main( int argc, char *argv[]) {
     head->vset(head, head->h);
     head->hset(head, head->w);
     head->vpos(head, head->x, head->y);
-    declare(head);
+    //declare(head);
+    dputi(0); // save room for dict pointer
     list(head);
+    dstring(head);
+    datafile[0] = oindex >> 8;
+    datafile[1] = oindex & 255;
+    dnames(head);
+    dputi(0);
+    dadjust(head);
+    write(1, datafile, oindex);
+    fprintf(stderr,"len %d\n", oindex);
 }

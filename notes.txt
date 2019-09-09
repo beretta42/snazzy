@@ -9,4 +9,13 @@ Three event interfaces:
 3. from GUI to userspace
 
 
-If we want loadable forms, we can't transmit (load) meaningful pointers.  We can resolve an index/relative at load-time.
+If we want loadable forms, we can't transmit (load) meaningful pointers. We can resolve references (once) after load.  Internal ptrs could be in relative form
+
+
+    void (*doev)(widget *w, int ev);
+    //    void (*uev)(widget *w, int ev);
+    widget *next;
+    widget *child;
+    char *text;
+
+

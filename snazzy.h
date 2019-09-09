@@ -1,22 +1,33 @@
 #ifndef SNAZZY_H
 #define SNAZZY_H
 
+#include <stdint.h> // fixme: s/b our .h
+
+#define MAX(a,b) (a > b ? a : b)
+#define MIN(a,b) (a < b ? a : b)
+#define abs(a) (a < 0 ? -a : a)
+
 typedef struct widget_s widget;
 
 struct widget_s {
-    int x;
-    int y;
-    int w;
-    int h;
-    int type;
-    widget *next;
-    widget *child;
-    int flags;
-    char *text;
-    int x1;
-    int y1;
-    int d;
+    int16_t x;
+    int16_t y;
+    int16_t w;
+    int16_t h;
+    int16_t type;
+    int16_t next;
+    int16_t child;
+    int16_t flags;
+    int16_t text;
+    int16_t x1;
+    int16_t y1;
+    int16_t d;
+    int16_t app;
 };
+
+typedef void (* appcall_ptr)(widget *w, int ev);
+
+
 
 /* widget types */
 #define TY_VBOX    0
@@ -49,5 +60,53 @@ struct widget_s {
 #define UEV_DOWN 0
 #define UEV_UP   1
 #define UEV_MOVE 2
+
+/* these are high level event send from engine to app */
+#define AEV_SELECT 0
+
+/* ??? fixme: s/b named different? */
+void ll_puts(int x, int y, char *t);
+void ll_draw_back(int x, int y, int w, int h);
+void draw_all(widget *w);
+void draw_coll(widget *w);
+void bound(widget *w);
+void do_event(widget *w, int ev);
+char *gpt(int o);
+widget *gp(int o);
+void send_uevent(int e, int x, int y);
+void draw_all(widget *w);
+void draw_back(widget *w);
+void do_appcall(widget *w, int ev);
+void push_focus(widget *w);
+void pull_focus(void);
+int load(char *name);
+void fixup(widget *w);
+unsigned int  ll_getticks(void);
+int reg_appcall(char *id, appcall_ptr m);
+int ll_init(void);
+void ll_deinit(void);
+void ll_loop(void);
+
+
+/* widget event handlers */
+void do_label(widget *w, int ev);
+void do_button(widget *w, int ev);
+void do_poplist(widget *w, int ev);
+void do_popitem(widget *w, int ev);
+void do_hslide(widget *w, int ev);
+
+int get_hslide(widget *w);
+
+
+extern widget *mwidget;
+extern widget *focus;
+extern int bx1;
+extern int by1;
+extern int bx2;
+extern int by2;
+extern int mx;
+extern int my;
+extern int drawf;
+extern unsigned char databuffer[1024];
 
 #endif /* SNAZZY_H */
