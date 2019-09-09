@@ -23,6 +23,7 @@ enum {
     POPLIST,
     POPITEM,
     HSLIDE,
+    PANEL,
 };
 
 /*This an internal compile-time widget structure,
@@ -583,8 +584,51 @@ void do_hslide() {
     cur->ctext = getstr();
     cur->rt_flags = RT_CLICKABLE;
 }
-    
 
+
+void vsize_panel(widget *w) {
+    widget *n;
+    for (n = w->child; n; n = n->next) {
+	n->vsize(n);
+	w->h = MAX(n->h,w->h);
+    }
+}
+
+void vset_panel(widget *w, int height) {
+    widget *n;
+    w->h = height;
+}
+
+void hsize_panel(widget *w) {
+    widget *n;
+    for (n = w->child; n; n = n->next) {
+	n->hsize(n);
+	w->w = MAX(n->w,w->w);
+    }
+}
+
+void hset_panel(widget *w, int width) {
+    w->w = width;
+}
+
+void vpos_panel(widget *w, int x, int y) {
+    w->x = x;
+    w->y = y;
+}
+
+/* panel widget */
+void do_panel() {
+    new_widget();
+    cur->type = PANEL;
+    cur->vsize = vsize_panel;
+    cur->vset = vset_panel;
+    cur->vpos = vpos_panel;
+    cur->hsize = hsize_panel;
+    cur->hset = hset_panel;
+    cur->ctext = getstr();
+    cur->rt_flags = 0;
+}
+    
 
 /*    ui tie-ins 
 
@@ -671,6 +715,7 @@ command_t cmds[] = {
     { "poplist",     do_pop },
     { "popitem",     do_popitem },
     { "hslide",      do_hslide },
+    { "panel",       do_panel },
     { "{",           do_open },
     { "}",           do_close },
     { "maxh",        do_maxh },
@@ -761,10 +806,10 @@ void dprint_widget(widget *w) {
     dputi(w->w);
     dputi(w->h);
     dputi(w->type);
-    dputi((int)w->next);
-    dputi((int)w->child);
+    dputi(0); // next ptr
+    dputi(0); // child ptr
     dputi(w->rt_flags);
-    dputi((int)w->text);
+    dputi(0); // text ptr
     dputi(w->x1);
     dputi(w->y1);
     if (w->type == HSLIDE) {
