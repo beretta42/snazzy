@@ -89,6 +89,7 @@ int ll_init(void);
 void ll_deinit(void);
 void ll_loop(void);
 widget *find_widget(char *id);
+widget *child_by_index(widget *w, int i);
 
 /* widget event handlers */
 void do_label(widget *w, int ev);

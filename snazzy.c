@@ -182,6 +182,11 @@ static widget *collide_all(widget *head, int x, int y) {
     return NULL;
 }
 
+widget *child_by_index(widget *w, int i) {
+    widget *n = gp(w->child);
+    while (i-- && n) n = gp(n->next);
+    return n;
+}
 
 /* called to send event to widget system 
      w = root widget

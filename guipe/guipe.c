@@ -85,6 +85,13 @@ int fonth = 6;
 int ucounter = 0;
 
 
+/* returns child widget indexed by i */
+widget *child_by_index(widget *w, int i) {
+    widget *n = w->child;
+    while(i-- && n) n = n->next;
+    return n;
+}
+
 /* returns an allocated, unique string for unnamed
    widgets */
 char *unique(void) {
@@ -409,6 +416,7 @@ void do_hbox() {
 
 void vsize_label(widget *w) {
     if (w->flags & MAXH) return;
+    if (w->h) return;
     w->h = 10;
 }
 
@@ -509,6 +517,9 @@ void vpos_pop(widget *w, int x, int y) {
     // use this as a place to iterate index values into children
     widget *n;
     int i = 0;
+    n = child_by_index(w, w->d);
+    w->toff = n->toff;
+    w->text = n->text;
     for (n = w->child; n; n = n->next) {
 	n->d = i++;
 	n->w = w->w;
@@ -534,7 +545,6 @@ void do_pop() {
     cur->hsize = hsize_pop;
     cur->hset = hset_pop;
     cur->ctext = getstr();
-    cur->text = getstr();
     cur->rt_flags = RT_CLICKABLE | RT_NOCHILD;
     cur->flags |= HLEFT;
 }
@@ -627,7 +637,7 @@ void vpos_panel(widget *w, int x, int y) {
 	n->vpos(n, x, y);
 	n->rt_flags |= RT_NODRAW;
     }
-    //    w->child->rt_flags &= ~RT_NODRAW;
+    child_by_index(w,w->d)->rt_flags &= ~RT_NODRAW;
 }
 
 /* panel widget */

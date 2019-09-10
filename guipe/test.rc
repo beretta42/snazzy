@@ -5,10 +5,13 @@ width 256
 height 192
 
 {
-   poplist example "example poplist" {
-       popitem "***Cool!***"
-       popitem "***BEANS***"
-       popitem "The quick brown fox"
+   hbox {
+       label "Flow Control:" height 14 
+       poplist example {
+           popitem "None"
+           popitem "XON/XOFF"
+           popitem "Hardware"
+       }
    }
    hbox { label "one" maxw label "two" maxw label "three" maxw }
    hbox { label "four" label "five" label "six" maxw right }
@@ -18,10 +21,10 @@ height 192
        label "nine"  max 
    }
    hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
-   panel ren {
+   panel ren maxw {
         vbox { label "ten" label "eleven" label "twelve" }
-	vbox { label "thirteen" label "fourteen" }
-	vbox { button foo "Foo" label "fifteen" }
+	vbox { label "yellow fish" label "red fish" label "blue fish"}
+	vbox { button foo "Foo" button gee "gee" label "fifteen" }
    }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
