@@ -37,11 +37,13 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define TY_POPLIST 4
 #define TY_POPITEM 5
 #define TY_HSLIDE  6
-#define TY_MAX     7
+#define TY_PANEL   7
+#define TY_MAX     8
 
 /* widget flags */
-#define FL_CLICKABLE  1        /* this widget can do mouse events */
-#define FL_NODRAW     2        /* don't recurse thru children while drawing */ 
+#define FL_CLICKABLE   1        /* this widget can do mouse events */
+#define FL_NODRAW      2        /* don't draw this widget */
+#define FL_NOCHILD     4        /* don't draw this widget's children */
 
 /* event types 
   These event are send to from the engine to widgets
@@ -86,7 +88,7 @@ int reg_appcall(char *id, appcall_ptr m);
 int ll_init(void);
 void ll_deinit(void);
 void ll_loop(void);
-
+widget *find_widget(char *id);
 
 /* widget event handlers */
 void do_label(widget *w, int ev);
@@ -94,9 +96,10 @@ void do_button(widget *w, int ev);
 void do_poplist(widget *w, int ev);
 void do_popitem(widget *w, int ev);
 void do_hslide(widget *w, int ev);
+void do_panel(widget *w, int ev);
 
 int get_hslide(widget *w);
-
+void select_panel(widget *w, int sel);
 
 extern widget *mwidget;
 extern widget *focus;
@@ -107,6 +110,6 @@ extern int by2;
 extern int mx;
 extern int my;
 extern int drawf;
-extern unsigned char databuffer[1024];
+extern unsigned char databuffer[8192];
 
 #endif /* SNAZZY_H */

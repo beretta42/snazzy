@@ -72,6 +72,7 @@ struct widget_s {
 
 #define RT_CLICKABLE 1  /* this widget can handle */
 #define RT_NODRAW    2  /* don't let engine redraw this widget's children */
+#define RT_NOCHILD   4  /* don't draw this widget's children */
 
 widget *tails[16];
 int tailptr = 0;
@@ -440,7 +441,7 @@ void do_label() {
     cur->hset = hset_label;
     cur->text = getstr();
     cur->ctext = unique();
-    cur->rt_flags = RT_CLICKABLE;
+    //cur->rt_flags = RT_CLICKABLE;
 }
 
 /*
@@ -534,7 +535,7 @@ void do_pop() {
     cur->hset = hset_pop;
     cur->ctext = getstr();
     cur->text = getstr();
-    cur->rt_flags = RT_CLICKABLE | RT_NODRAW;
+    cur->rt_flags = RT_CLICKABLE | RT_NOCHILD;
     cur->flags |= HLEFT;
 }
 
@@ -597,6 +598,9 @@ void vsize_panel(widget *w) {
 void vset_panel(widget *w, int height) {
     widget *n;
     w->h = height;
+    for (n = w->child; n; n = n->next) {
+	n->vset(n, height);
+    }
 }
 
 void hsize_panel(widget *w) {
@@ -608,12 +612,22 @@ void hsize_panel(widget *w) {
 }
 
 void hset_panel(widget *w, int width) {
+    widget *n;
     w->w = width;
+    for (n = w->child; n; n = n->next) {
+	n->hset(n, width);
+    }
 }
 
 void vpos_panel(widget *w, int x, int y) {
+    widget *n;
     w->x = x;
     w->y = y;
+    for (n = w->child; n; n = n->next) {
+	n->vpos(n, x, y);
+	n->rt_flags |= RT_NODRAW;
+    }
+    //    w->child->rt_flags &= ~RT_NODRAW;
 }
 
 /* panel widget */
@@ -626,7 +640,6 @@ void do_panel() {
     cur->hsize = hsize_panel;
     cur->hset = hset_panel;
     cur->ctext = getstr();
-    cur->rt_flags = 0;
 }
     
 
@@ -789,10 +802,10 @@ void hprint_widget(widget *w) {
 }
 
 // print widget out as a datafile
-uint8_t datafile[1024];
+uint8_t datafile[8192];
 uint16_t oindex = 0;
 void dputi(int i) {
-    if (oindex > 1022) {
+    if (oindex > 8192 - 2) {
 	fprintf(stderr,"output buffer exhausted");
 	exit(1);
     }

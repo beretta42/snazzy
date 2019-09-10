@@ -1,4 +1,3 @@
-
 #include "snazzy.h"
 #include "ll.h"
 
@@ -30,10 +29,10 @@ void do_poplist(widget *w, int ev) {
 	do_poplist(w, EV_DRAW);
 	break;
     case EV_CLICK:
-	w->flags ^= FL_NODRAW;
+	w->flags ^= FL_NOCHILD;
 	bound(w);
 	ll_draw_back(bx1, by1, bx2-bx1, by2-by1);
-	if (w->flags & FL_NODRAW) {
+	if (w->flags & FL_NOCHILD) {
 	    pull_focus();
 	    draw_coll(focus);
 	}

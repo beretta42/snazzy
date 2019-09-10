@@ -18,6 +18,11 @@ height 192
        label "nine"  max 
    }
    hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
+   panel ren {
+        vbox { label "ten" label "eleven" label "twelve" }
+	vbox { label "thirteen" label "fourteen" }
+	vbox { button foo "Foo" label "fifteen" }
+   }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
    	button quit "Quit" 

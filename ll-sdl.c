@@ -168,7 +168,7 @@ int load(char *name) {
     fd = open(name,O_RDONLY);
     if (fd < 0)
 	return 1;
-    ret = read(fd,databuffer, 1024);
+    ret = read(fd,databuffer, 8192);
     close(fd);
     focus = (widget *)(databuffer + 2);
     // fixme don't do this stuff if big endian!!

@@ -8,6 +8,8 @@
   Main / Testing
 */
 
+widget *panel;
+
 void do_quit(widget *w, int ev) {
     fprintf(stderr,"quit clicked\n", ev);
     ll_deinit();
@@ -20,10 +22,15 @@ void do_save(widget *w, int ev) {
 
 void do_example(widget *w, int ev) {
     fprintf(stderr,"example select: %d\n", w->d);
+    select_panel(panel, w->d);
 }
 
 void do_volume(widget *w, int ev) {
     fprintf(stderr,"new volume: %d\n", get_hslide(w));
+}
+
+void do_foo(widget *w, int ev) {
+    fprintf(stderr,"foo!\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -36,6 +43,8 @@ int main(int argc, char *argv[]) {
     reg_appcall("save", do_save);
     reg_appcall("example", do_example);
     reg_appcall("volume", do_volume);
+    reg_appcall("foo", do_foo);
+    panel = find_widget("ren");
     draw_all(focus);
     ll_loop();
     ll_deinit();

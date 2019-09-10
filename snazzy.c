@@ -16,7 +16,7 @@
 #include "snazzy.h"
 #include "ll.h"   // fixme: remove
 
-uint8_t databuffer[1024];
+uint8_t databuffer[8192];
 appcall_ptr app_tab[256];
 int aindex = 1;
 int bx1;
@@ -95,7 +95,8 @@ void do_event(widget *w, int ev) {
 	do_button,
 	do_poplist,
 	do_popitem,
-	do_hslide 
+	do_hslide,
+	do_panel
 	};
     // fixme: check for out of bounds here
     tab[w->type](w, ev);
@@ -127,30 +128,30 @@ void bound(widget *w) {
 
 void draw_coll(widget *w) {
     widget *n;
+    if (w->flags & FL_NODRAW) return;
     if ( w->x > bx2 ||
     	 w->y > by2 ||
     	 w->x + w->w < bx1 ||
     	 w->y + w->h < by1 )
     	return;
-    if ((w->flags & FL_NODRAW) == 0) {
-	for (n = gp(w->child); n; n = gp(n->next)) {
-	    draw_coll(n);
-	    do_event(n, EV_DRAW);
-	}
-    }
+    drawf = 1;
     do_event(w, EV_DRAW);
+    if (w->flags & FL_NOCHILD) return;
+    for (n = gp(w->child); n; n = gp(n->next)) {
+	draw_coll(n);
+	do_event(n, EV_DRAW);
+    }
 }
 
 void draw_all(widget *w) {
     widget *n;
+    if (w->flags & FL_NODRAW) return;
     drawf = 1;
-    if ((w->flags & FL_NODRAW) == 0) {
-	for (n = gp(w->child); n; n = gp(n->next)) {
-	    draw_all(n);
-	    do_event(n, EV_DRAW);
-	}
-    }
     do_event(w, EV_DRAW);
+    if (w->flags & FL_NOCHILD) return;
+    for (n = gp(w->child); n; n = gp(n->next)) {
+	draw_all(n);
+    }
 }
 
 static int collide(widget *w, int x, int y) {
@@ -171,7 +172,7 @@ static widget *collide_all(widget *head, int x, int y) {
 	    if (n->flags & FL_CLICKABLE) {
 		return n;
 	    }
-	    else {
+	    else if ((n->flags & FL_NODRAW)==0) {
 		t = collide_all(n, x, y);
 		if (t) return t;
 	    }
