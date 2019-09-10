@@ -28,3 +28,4 @@ guipe/guipe:  guipe/guipe.c
 
 clean:
 	rm -f *.o snazzy *~ test.h test.frm test snazzy.a
+	$(MAKE) -C guipe clean
