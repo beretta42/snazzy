@@ -599,10 +599,13 @@ void do_hslide() {
 
 void vsize_panel(widget *w) {
     widget *n;
+    int max = w->h;
     for (n = w->child; n; n = n->next) {
 	n->vsize(n);
-	w->h = MAX(n->h,w->h);
+	max = MAX(n->h,max);
     }
+    if (w->h || (w->flags & MAXH)) return;
+    w->h = max;
 }
 
 void vset_panel(widget *w, int height) {
@@ -615,10 +618,13 @@ void vset_panel(widget *w, int height) {
 
 void hsize_panel(widget *w) {
     widget *n;
+    int max = w->w;
     for (n = w->child; n; n = n->next) {
 	n->hsize(n);
-	w->w = MAX(n->w,w->w);
+	max = MAX(n->w,max);
     }
+    if (w->w || (w->flags & MAXW)) return;
+    w->w = max;
 }
 
 void hset_panel(widget *w, int width) {

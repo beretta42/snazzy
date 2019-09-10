@@ -13,19 +13,22 @@ height 192
            popitem "Hardware"
        }
    }
-   hbox { label "one" maxw label "two" maxw label "three" maxw }
-   hbox { label "four" label "five" label "six" maxw right }
-   vbox {
-       label "seven" maxh top
-       label "eight" maxh top
-       label "nine"  max 
-   }
-   hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
-   panel ren maxw {
-        vbox { label "ten" label "eleven" label "twelve" }
+   
+   panel ren max {
+        vbox {
+	    hbox { label "one" maxw label "two" maxw label "three" maxw }
+            hbox { label "four" label "five" label "six" maxw right }
+            vbox {
+                label "seven" maxh top
+                label "eight" maxh top
+                label "nine"  max 
+            }
+	}
+#	vbox { label "huzzah" label "yay!" label "boo1" }
 	vbox { label "yellow fish" label "red fish" label "blue fish"}
 	vbox { button foo "Foo" button gee "gee" label "fifteen" }
    }
+   hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
    	button quit "Quit" 
