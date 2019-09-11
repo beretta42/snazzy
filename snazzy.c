@@ -96,7 +96,9 @@ void do_event(widget *w, int ev) {
 	do_poplist,
 	do_popitem,
 	do_hslide,
-	do_panel
+	do_panel,
+	do_menu,
+	do_menuitem,
 	};
     // fixme: check for out of bounds here
     tab[w->type](w, ev);
@@ -140,6 +142,13 @@ void draw_coll(widget *w) {
     for (n = gp(w->child); n; n = gp(n->next)) {
 	draw_coll(n);
 	do_event(n, EV_DRAW);
+    }
+}
+
+void draw_children(widget *w) {
+    widget *n;
+    for (n = gp(w->child); n; n = gp(n->next)) {
+	draw_all(n);
     }
 }
 
@@ -206,8 +215,10 @@ void send_uevent(int e, int x, int y) {
 	    down = n;
 	    break;
 	case UEV_UP:
-	    if (n != down) 
-		do_event(down, EV_UP);
+	    if (n != down) {
+		if (down) do_event(down, EV_UP);
+		do_event(n, EV_UP);
+	    }
 	    else {
 		do_event(n, EV_UP);
 		do_event(n, EV_CLICK);
@@ -223,7 +234,7 @@ void send_uevent(int e, int x, int y) {
 	    break;
 	}
     }
-    else {
+    else if (e != UEV_MOVE){
 	if (down) do_event(down, EV_UP);
 	down == NULL;
 	// fixme: I'm not sure this is great here

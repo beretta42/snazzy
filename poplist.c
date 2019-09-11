@@ -31,7 +31,7 @@ void do_poplist(widget *w, int ev) {
     case EV_CLICK:
 	w->flags ^= FL_NOCHILD;
 	bound(w);
-	ll_draw_back(bx1, by1, bx2-bx1, by2-by1);
+	ll_draw_back(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
 	if (w->flags & FL_NOCHILD) {
 	    pull_focus();
 	    draw_coll(focus);
@@ -39,7 +39,7 @@ void do_poplist(widget *w, int ev) {
 	else {
 	    poplist = w;
 	    draw_all(w);
-	    ll_box(bx1, by1, bx2-bx1, by2-by1);
+	    ll_box(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
 	    push_focus(w);
 	}
 	break;

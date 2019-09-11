@@ -6,6 +6,8 @@
 #include <fcntl.h>
 
 #define MAX(a,b) (a > b ? a : b);
+#define VPAD 2
+#define HPAD 2
 
 /* input buffers */
 char wordb[80];
@@ -24,6 +26,8 @@ enum {
     POPITEM,
     HSLIDE,
     PANEL,
+    MENU,
+    MENUITEM,
 };
 
 /*This an internal compile-time widget structure,
@@ -259,7 +263,7 @@ void vsize_vbox(widget *w) {
 	    m++;
 	    continue;
 	}
-	h += n->h;
+	h += n->h + VPAD;
     }
     // pass handy values to vset
     w->vused = h;
@@ -293,7 +297,7 @@ void vpos_vbox(widget *w, int x, int y) {
     w->x = x;
     for (n = w->child; n; n = n->next) {
 	n->vpos(n, x, y);
-	y += n->h;
+	y += n->h + VPAD;
     }
 }
 
@@ -536,7 +540,7 @@ void hset_pop(widget *w, int width){
     w->w = width;
 }
 
-void do_pop() {
+void do_poplist() {
     new_widget();
     cur->type = POPLIST;
     cur->vsize = vsize_pop;
@@ -549,12 +553,18 @@ void do_pop() {
     cur->flags |= HLEFT;
 }
 
+
+void vpos_popitem(widget *w, int x, int y) {
+    vpos_label(w, x+2 , y+1);
+    w->x1 += 2;
+}
+
 void do_popitem() {
     new_widget();
     cur->type = POPITEM;
     cur->vsize = vsize_label;
     cur->vset = vset_label;
-    cur->vpos = vpos_label;
+    cur->vpos = vpos_popitem;
     cur->hsize = hsize_label;
     cur->hset = hset_label;
     cur->ctext = unique();
@@ -657,7 +667,29 @@ void do_panel() {
     cur->hset = hset_panel;
     cur->ctext = getstr();
 }
-    
+
+
+void vpos_menu(widget *w, int x, int y) {
+    int toff = w->toff;
+    char *text = w->text;
+    vpos_pop(w,x,y);
+    w->toff = toff;
+    w->text = text;
+}
+
+/* 
+   menu widget */
+void do_menu() {
+    do_poplist();
+    cur->text = getstr();
+    cur->type = MENU;
+    cur->vpos = vpos_menu;
+}
+
+void do_menuitem() {
+    do_popitem();
+    cur->type = MENUITEM;
+}
 
 /*    ui tie-ins 
 
@@ -741,7 +773,7 @@ command_t cmds[] = {
     { "width",       do_width },
     { "height",      do_height },
     { "label",       do_label },
-    { "poplist",     do_pop },
+    { "poplist",     do_poplist },
     { "popitem",     do_popitem },
     { "hslide",      do_hslide },
     { "panel",       do_panel },
@@ -759,6 +791,8 @@ command_t cmds[] = {
     { "button",      do_button },
     { "valmax",      do_valmax },
     { "value",       do_value },
+    { "menu",        do_menu },
+    { "menuitem",    do_menuitem },
     { NULL, NULL },
 };
 

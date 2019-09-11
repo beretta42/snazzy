@@ -30,15 +30,17 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 
 
 /* widget types */
-#define TY_VBOX    0
-#define TY_HBOX    1
-#define TY_LABEL   2
-#define TY_BUTTON  3
-#define TY_POPLIST 4
-#define TY_POPITEM 5
-#define TY_HSLIDE  6
-#define TY_PANEL   7
-#define TY_MAX     8
+#define TY_VBOX      0
+#define TY_HBOX      1
+#define TY_LABEL     2
+#define TY_BUTTON    3
+#define TY_POPLIST   4
+#define TY_POPITEM   5
+#define TY_HSLIDE    6
+#define TY_PANEL     7
+#define TY_MENU      8
+#define TY_MENUITEM  9
+#define TY_MAX      10
 
 /* widget flags */
 #define FL_CLICKABLE   1        /* this widget can do mouse events */
@@ -70,6 +72,7 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 void ll_puts(int x, int y, char *t);
 void ll_draw_back(int x, int y, int w, int h);
 void draw_all(widget *w);
+void draw_children(widget *w);
 void draw_coll(widget *w);
 void bound(widget *w);
 void do_event(widget *w, int ev);
@@ -98,12 +101,15 @@ void do_poplist(widget *w, int ev);
 void do_popitem(widget *w, int ev);
 void do_hslide(widget *w, int ev);
 void do_panel(widget *w, int ev);
+void do_menu(widget *w, int ev);
+void do_menuitem(widget *w, int ev);
 
 int get_hslide(widget *w);
 void select_panel(widget *w, int sel);
 
 extern widget *mwidget;
 extern widget *focus;
+extern widget *down;
 extern int bx1;
 extern int by1;
 extern int bx2;

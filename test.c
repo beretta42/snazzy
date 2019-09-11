@@ -33,6 +33,10 @@ void do_foo(widget *w, int ev) {
     fprintf(stderr,"foo!\n");
 }
 
+void do_main(widget *w, int ev) {
+    fprintf(stderr,"menu select: %d\n", w->d);
+}
+
 int main(int argc, char *argv[]) {
     int ret;
     
@@ -44,6 +48,7 @@ int main(int argc, char *argv[]) {
     reg_appcall("example", do_example);
     reg_appcall("volume", do_volume);
     reg_appcall("foo", do_foo);
+    reg_appcall("main", do_main);
     panel = find_widget("ren");
     draw_all(focus);
     ll_loop();

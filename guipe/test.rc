@@ -5,6 +5,12 @@ width 256
 height 192
 
 {
+   menu main "File" {
+      menuitem "Open"
+      menuitem "New"
+      menuitem "Exit"
+      menuitem "Alert"
+   }
    hbox {
        label "Flow Control:" height 14 
        poplist example {
@@ -24,7 +30,6 @@ height 192
                 label "nine"  max 
             }
 	}
-#	vbox { label "huzzah" label "yay!" label "boo1" }
 	vbox { label "yellow fish" label "red fish" label "blue fish"}
 	vbox { button foo "Foo" button gee "gee" label "fifteen" }
    }
