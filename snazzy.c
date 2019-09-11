@@ -234,7 +234,7 @@ void send_uevent(int e, int x, int y) {
 	    break;
 	}
     }
-    else if (e != UEV_MOVE){
+    else if (e == UEV_UP){
 	if (down) do_event(down, EV_UP);
 	down == NULL;
 	// fixme: I'm not sure this is great here

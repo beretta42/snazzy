@@ -24,7 +24,6 @@ void do_menu(widget *w, int ev) {
 	push_focus(w);
 	break;
     case EV_UP:
-	if (w->flags & FL_NOCHILD) break;
 	w->flags ^= FL_NOCHILD;
 	bound(w);
 	ll_draw_back(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
