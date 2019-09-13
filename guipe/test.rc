@@ -13,10 +13,10 @@ height 192
    }
    hbox {
        label "Flow Control:" height 14 
-       poplist example {
-           popitem "None"
-           popitem "XON/XOFF"
-           popitem "Hardware"
+       menu example "examp" {
+           menuitem "None"
+           menuitem "XON/XOFF"
+           menuitem "Hardware"
        }
    }
    

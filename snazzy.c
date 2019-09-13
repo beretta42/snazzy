@@ -217,9 +217,10 @@ widget *lmove = NULL;
 void send_uevent(int e, int x, int y) {
     widget *n = collide_all(focus, x, y);
     mx = x; my = y;
-    // we only get MOVE events if the ll.c allows
-    // but if we do track and send IN and OUT events to widgets
-    if (e == UEV_MOVE) {
+    switch (e) {
+	// we only get MOVE events if the ll.c allows
+	// but if we do track and send IN and OUT events to widgets
+    case UEV_MOVE:
 	if (n != lmove) {
 	    do_event(n, EV_IN);
 	    do_event(lmove, EV_OUT);
@@ -227,46 +228,35 @@ void send_uevent(int e, int x, int y) {
 	}
 	else
 	    do_event(n, EV_MOVE);
-    }
-    /* fixme: this is questionale if we really have to test for n here. */
-    if (n) { 
-	switch (e) {
-	case UEV_DOWN:
-	    do_event(n, EV_DOWN);
-	    down = n;
-	    break;
-	case UEV_UP:
-	    /* send widget UP event, if it was the last widget pushed down,
-	       then send a CLICK event,  if this was the second click
-	       in a short time, also send DOUBLE
-	    */
-	    do_event(n, EV_UP);
-	    if (n != down) {
-		do_event(down, EV_UP);
+	break;
+    case UEV_DOWN:
+	do_event(n, EV_DOWN);
+	down = n;
+	break;
+    case UEV_UP:
+	/* send widget UP event, if it was the last widget pushed down,
+	   then send a CLICK event,  if this was the second click
+	   in a short time, also send DOUBLE
+	*/
+	do_event(n, EV_UP);
+	if (n != down) {
+	    do_event(down, EV_UP);
+	}
+	else {
+	    do_event(n, EV_CLICK);
+	    if (n == clicked && (ll_getticks() - time) < dtime) {
+		do_event(n, EV_DOUBLE);
+		clicked = NULL;
 	    }
 	    else {
-		do_event(n, EV_CLICK);
-		if (n == clicked && (ll_getticks() - time) < dtime) {
-		    do_event(n, EV_DOUBLE);
-		    clicked = NULL;
-		}
-		else {
-		    clicked = n;
-		    time = ll_getticks();
-		}
+		clicked = n;
+		time = ll_getticks();
 	    }
-	    break;
 	}
-    }
-    else if (e == UEV_UP){
-	do_event(down, EV_UP);
-	down == NULL;
-	// fixme: I'm not sure this is great here
-	if (wstack_ptr) {
-	    do_event(focus, EV_CLICK);
-	}
+	break;
     }
 }
+
 
 // fixme: don't call me if target is BIG ENDIAN
 void fixup(widget *w) {
