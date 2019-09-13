@@ -216,6 +216,7 @@ void send_uevent(int e, int x, int y) {
 	    break;
 	case UEV_UP:
 	    if (n != down) {
+		// fixme: next line bonks out menu pull-downs
 		if (down) do_event(down, EV_UP);
 		do_event(n, EV_UP);
 	    }

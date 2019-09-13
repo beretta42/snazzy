@@ -32,6 +32,15 @@ void do_menu(widget *w, int ev) {
 	do_menu(w, EV_DRAW);
 	mwidget = NULL;
 	break;
+    case EV_CLICK:
+	if (w->flags & FL_NOCHILD) {
+	    do_menu(w, EV_DOWN);
+	}
+	else {
+	    down = NULL;
+	    do_menu(w, EV_UP);
+	}
+	break;
     }
 }
 
@@ -47,6 +56,7 @@ void do_menuitem(widget *w, int ev) {
 	break;
     case EV_UP:
 	menu->d = w->d;
+	do_menu(menu, EV_UP);
 	foo = NULL;
 	do_appcall(menu, AEV_SELECT);
 	break;

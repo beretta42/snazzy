@@ -18,8 +18,8 @@ int ll_init(void) {
 
     ret = SDL_Init(SDL_INIT_VIDEO);
     win = SDL_CreateWindow("A Fancy Title",
-			   SDL_WINDOWPOS_UNDEFINED,
-			   SDL_WINDOWPOS_UNDEFINED,
+			   10,
+			   10,
 			   512, 384,
 			   SDL_WINDOW_SHOWN);
     screen = SDL_GetWindowSurface(win);
