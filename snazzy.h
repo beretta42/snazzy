@@ -119,6 +119,8 @@ extern int bx1;
 extern int by1;
 extern int bx2;
 extern int by2;
+extern int bw;
+extern int bh;
 extern int mx;
 extern int my;
 extern int drawf;

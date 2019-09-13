@@ -23,8 +23,12 @@ int bx1;
 int by1;
 int bx2;
 int by2;
+int bw;
+int bh;
 widget *focus;
 widget *mwidget;
+widget *lmove = NULL;
+widget *down;
 widget *wstack[16];
 int wstack_ptr = 0;
 int mx;
@@ -33,7 +37,6 @@ int drawf;
 widget *clicked;
 int time;
 int dtime = 500;
-widget *down;
 
 
 
@@ -78,6 +81,10 @@ void pull_focus(void) {
 	exit(1);
     }
     focus = wstack[--wstack_ptr];
+    lmove = NULL;
+    down = NULL;
+    mwidget = NULL;
+    clicked = NULL;
 }
 
 void draw_back(widget *w) {
@@ -136,6 +143,8 @@ void bound(widget *w) {
 	bx2 = MAX(bx2, n->x + n->w);
 	by2 = MAX(by2, n->y + n->h);
     }
+    bw = bx2 - bx1;
+    bh = by2 - by1;
 }
 
 
@@ -213,7 +222,6 @@ widget *child_by_index(widget *w, int i) {
      e = input event
      x,y = coordinates of input event (if any)
 */
-widget *lmove = NULL;
 void send_uevent(int e, int x, int y) {
     widget *n = collide_all(focus, x, y);
     mx = x; my = y;

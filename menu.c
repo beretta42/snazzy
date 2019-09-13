@@ -5,15 +5,12 @@
 widget *menu;
 
 static void do_foo(widget *w) {
+    w->flags |= FL_NOCHILD;
     bound(w);
-    ll_draw_back(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
+    ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
     pull_focus();
     draw_coll(focus);
-    mwidget = NULL;
-    w->flags |= FL_NOCHILD;
     menu = NULL;
-    lmove = NULL;
-    down = NULL;
 }
 
 void do_menu(widget *w, int ev) {
@@ -28,10 +25,10 @@ void do_menu(widget *w, int ev) {
 	ll_puts(w->x1+10, w->y1+2, gpt(w->text));
 	w->flags &= ~FL_NOCHILD;
 	bound(w);
-	ll_draw_back(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
+	ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
 	menu = w;
 	draw_children(w);
-	ll_box(bx1-1, by1-1, bx2-bx1+2, by2-by1+2);
+	ll_box(bx1-1, by1-1, bw+2, bh+2);
 	push_focus(w);
 	break;
     case EV_OUT:
