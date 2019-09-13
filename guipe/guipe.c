@@ -28,6 +28,7 @@ enum {
     PANEL,
     MENU,
     MENUITEM,
+    WINDOW,
 };
 
 /*This an internal compile-time widget structure,
@@ -668,6 +669,9 @@ void do_panel() {
     cur->ctext = getstr();
 }
 
+/* 
+   menu widget */
+
 
 void vpos_menu(widget *w, int x, int y) {
     int toff = w->toff;
@@ -677,8 +681,6 @@ void vpos_menu(widget *w, int x, int y) {
     w->text = text;
 }
 
-/* 
-   menu widget */
 void do_menu() {
     do_poplist();
     cur->text = getstr();
@@ -690,6 +692,38 @@ void do_menuitem() {
     do_popitem();
     cur->type = MENUITEM;
 }
+
+/*
+  Window widget */
+
+void vsize_window(widget *w) {
+}
+
+void vset_window(widget *w, int height) {
+}
+
+void hsize_window(widget *w) {
+}
+
+void hset_window(widget *w, int width) {
+}
+
+void vpos_window(widget *w, int x, int y) {
+}
+
+void do_window() {
+    new_widget();
+    cur->type = WINDOW;
+    cur->vsize = vsize_window;
+    cur->vset = vset_window;
+    cur->vpos = vpos_window;
+    cur->hsize = hsize_window;
+    cur->hset = hset_window;
+    cur->ctext = getstr();
+    cur->rt_flags = RT_CLICKABLE;
+}
+
+
 
 /*    ui tie-ins 
 
@@ -793,6 +827,7 @@ command_t cmds[] = {
     { "value",       do_value },
     { "menu",        do_menu },
     { "menuitem",    do_menuitem },
+    { "window",      do_window },
     { NULL, NULL },
 };
 
