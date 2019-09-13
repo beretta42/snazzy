@@ -42,6 +42,7 @@ void do_menu(widget *w, int ev) {
 }
 
 void do_menuitem(widget *w, int ev) {
+    widget *m;
     switch (ev) {
     case EV_DRAW:
 	draw_back(w);
@@ -51,9 +52,10 @@ void do_menuitem(widget *w, int ev) {
 	bounce(w);
 	break;
     case EV_UP:
+	m = menu;
 	menu->d = w->d;
-	do_appcall(menu, AEV_SELECT);
 	do_foo(menu);
+	do_appcall(m, AEV_SELECT);
 	break;
     case EV_IN:
 	do_menuitem(w, EV_DOWN);
