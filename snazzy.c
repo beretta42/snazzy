@@ -73,11 +73,21 @@ void push_focus(widget *w) {
 }
 
 void pull_focus(void) {
+    if (wstack_ptr < 1) {
+	fprintf(stderr,"focus stack exhausted\n");
+	exit(1);
+    }
     focus = wstack[--wstack_ptr];
 }
 
 void draw_back(widget *w) {
     ll_draw_back(w->x, w->y, w->w, w->h);
+}
+
+
+void bounce(widget *w) {
+    draw_back(w);
+    ll_puts(w->x1+1, w->y1+1, gpt(w->text));
 }
 
 /* a dummy no-op for widgets that don't need a runtime
@@ -100,6 +110,7 @@ void do_event(widget *w, int ev) {
 	do_menu,
 	do_menuitem,
 	};
+    if (w == NULL) return;
     // fixme: check for out of bounds here
     tab[w->type](w, ev);
 }
@@ -172,7 +183,7 @@ static int collide(widget *w, int x, int y) {
     return 1;
 }
 
-static widget *collide_all(widget *head, int x, int y) {
+widget *collide_all(widget *head, int x, int y) {
     widget *n;
     widget *t;
     if (head == NULL) return NULL;
@@ -202,26 +213,38 @@ widget *child_by_index(widget *w, int i) {
      e = input event
      x,y = coordinates of input event (if any)
 */
+widget *lmove = NULL;
 void send_uevent(int e, int x, int y) {
     widget *n = collide_all(focus, x, y);
     mx = x; my = y;
-    if (n) {
-	switch (e) {
-	case UEV_MOVE:
+    // we only get MOVE events if the ll.c allows
+    // but if we do track and send IN and OUT events to widgets
+    if (e == UEV_MOVE) {
+	if (n != lmove) {
+	    do_event(n, EV_IN);
+	    do_event(lmove, EV_OUT);
+	    lmove = n;
+	}
+	else
 	    do_event(n, EV_MOVE);
-	    break;
+    }
+    /* fixme: this is questionale if we really have to test for n here. */
+    if (n) { 
+	switch (e) {
 	case UEV_DOWN:
 	    do_event(n, EV_DOWN);
 	    down = n;
 	    break;
 	case UEV_UP:
+	    /* send widget UP event, if it was the last widget pushed down,
+	       then send a CLICK event,  if this was the second click
+	       in a short time, also send DOUBLE
+	    */
+	    do_event(n, EV_UP);
 	    if (n != down) {
-		// fixme: next line bonks out menu pull-downs
-		if (down) do_event(down, EV_UP);
-		do_event(n, EV_UP);
+		do_event(down, EV_UP);
 	    }
 	    else {
-		do_event(n, EV_UP);
 		do_event(n, EV_CLICK);
 		if (n == clicked && (ll_getticks() - time) < dtime) {
 		    do_event(n, EV_DOUBLE);
@@ -236,7 +259,7 @@ void send_uevent(int e, int x, int y) {
 	}
     }
     else if (e == UEV_UP){
-	if (down) do_event(down, EV_UP);
+	do_event(down, EV_UP);
 	down == NULL;
 	// fixme: I'm not sure this is great here
 	if (wstack_ptr) {

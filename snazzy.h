@@ -56,6 +56,8 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define EV_CLICK  3       // clicked
 #define EV_DOUBLE 4       // double clicked
 #define EV_MOVE   5       // mouse moved
+#define EV_IN     6       // mouse moved into a widget
+#define EV_OUT    7       // mouse moved out of a widget
 
 /* uevent types 
   These are events passed from the graphcial i/o system 
@@ -73,6 +75,7 @@ void ll_puts(int x, int y, char *t);
 void ll_draw_back(int x, int y, int w, int h);
 void draw_all(widget *w);
 void draw_children(widget *w);
+widget *collide_all(widget *head, int x, int y);
 void draw_coll(widget *w);
 void bound(widget *w);
 void do_event(widget *w, int ev);
@@ -81,6 +84,7 @@ widget *gp(int o);
 void send_uevent(int e, int x, int y);
 void draw_all(widget *w);
 void draw_back(widget *w);
+void bounce(widget *w);
 void do_appcall(widget *w, int ev);
 void push_focus(widget *w);
 void pull_focus(void);
@@ -110,6 +114,7 @@ void select_panel(widget *w, int sel);
 extern widget *mwidget;
 extern widget *focus;
 extern widget *down;
+extern widget *lmove;
 extern int bx1;
 extern int by1;
 extern int bx2;
