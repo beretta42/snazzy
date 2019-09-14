@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "snazzy.h"
 #include "ll.h"
 
@@ -31,6 +32,8 @@ void do_poplist(widget *w, int ev) {
 */
 extern widget *menu;
 void do_popitem(widget *w, int ev){
-    menu->text = w->text;
+    if (ev == EV_UP)
+	menu->text = w->text;
     do_menuitem(w, ev);
 }
+
