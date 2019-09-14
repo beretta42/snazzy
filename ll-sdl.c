@@ -11,7 +11,11 @@ Low level graphics routines for SDL2
 
 SDL_Window *win = NULL;
 SDL_Surface *screen = NULL;
+SDL_Surface *mouse_back = NULL;
+SDL_Rect mouse_rec;
+int mx, my;
 int pen = 0;
+
 
 int ll_init(void) {
     int ret;
@@ -25,6 +29,16 @@ int ll_init(void) {
     screen = SDL_GetWindowSurface(win);
     ll_cset(1);
     SDL_UpdateWindowSurface(win);
+    SDL_ShowCursor(SDL_DISABLE);
+    mouse_back = SDL_CreateRGBSurface(0, 16, 12, 32, 0, 0, 0, 0);
+    if (mouse_back == NULL) {
+	fprintf(stderr,"cannot allocate mouse buffer\n");
+	exit(1);
+    }
+    mouse_rec.x = 0;
+    mouse_rec.y = 0;
+    mouse_rec.w = 16;
+    mouse_rec.h = 12;
 }
 
 void ll_cset(int color){
@@ -123,6 +137,35 @@ void ll_draw_back(int x, int y, int w, int h) {
 
 #include "snazzy.h"
 
+static unsigned char icon_mouse[] = {
+    0b10000000,
+    0b11100000,
+    0b11111000,
+    0b11110000,
+    0b00011000,
+    0b00001100,
+};
+
+
+void ll_put_mouse(int x, int y) {
+    SDL_Rect s;
+    s.x = x * 2;
+    s.y = y * 2;
+    s.w = 16;
+    s.h = 12;
+    SDL_BlitSurface(screen, &s, mouse_back, &mouse_rec);
+    ll_cset(1);
+    ll_char_draw(x,y, icon_mouse);
+}
+
+void ll_unput_mouse(int x, int y) {
+    SDL_Rect d;
+    d.x = x * 2;
+    d.y = y * 2;
+    SDL_BlitSurface(mouse_back, &mouse_rec, screen, &d);
+}
+
+
 void ll_loop() {
     /* send SDL events to widget system */
     int ret;
@@ -132,7 +175,10 @@ void ll_loop() {
 	ret = SDL_PollEvent(&e);
 	if (ret == 0)
 	    continue;
+	ll_unput_mouse(mx, my);
 	if (e.type == SDL_MOUSEMOTION ){
+	    mx = e.motion.x/2;
+	    my = e.motion.y/2;
 	    if (mwidget) {
 		send_uevent(UEV_MOVE, e.motion.x/2, e.motion.y/2);
 	    }
@@ -156,6 +202,7 @@ void ll_loop() {
 		continue;
 	    }
 	}
+	ll_put_mouse(mx,my);
 	if (drawf) SDL_UpdateWindowSurface(win);
     }
 }
