@@ -30,10 +30,9 @@ void do_poplist(widget *w, int ev) {
   Pop Item Widget 
 
 */
-extern widget *menu;
 void do_popitem(widget *w, int ev){
     if (ev == EV_UP)
-	menu->text = w->text;
+	focus->text = w->text;
     do_menuitem(w, ev);
 }
 

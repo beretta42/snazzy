@@ -2,15 +2,12 @@
 #include "snazzy.h"
 #include "ll.h"
 
-widget *menu;
-
 static void do_foo(widget *w) {
     w->flags |= FL_NOCHILD;
     bound(w);
     ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
     pull_focus();
     draw_coll(focus);
-    menu = NULL;
 }
 
 void do_menu(widget *w, int ev) {
@@ -26,7 +23,6 @@ void do_menu(widget *w, int ev) {
 	w->flags &= ~FL_NOCHILD;
 	bound(w);
 	ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
-	menu = w;
 	draw_children(w);
 	ll_box(bx1-1, by1-1, bw+2, bh+2);
 	push_focus(w);
@@ -49,9 +45,9 @@ void do_menuitem(widget *w, int ev) {
 	bounce(w);
 	break;
     case EV_UP:
-	m = menu;
-	menu->d = w->d;
-	do_foo(menu);
+	m = focus;
+	focus->d = w->d;
+	do_foo(focus);
 	do_appcall(m, AEV_SELECT);
 	break;
     case EV_IN:
