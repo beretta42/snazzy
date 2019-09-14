@@ -2,14 +2,6 @@
 #include "snazzy.h"
 #include "ll.h"
 
-static void do_foo(widget *w) {
-    w->flags |= FL_NOCHILD;
-    bound(w);
-    ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
-    pull_focus();
-    draw_coll(focus);
-}
-
 void do_menu(widget *w, int ev) {
     switch(ev) {
     case EV_DRAW:
@@ -29,7 +21,7 @@ void do_menu(widget *w, int ev) {
 	break;
     case EV_OUT:
 	if (!collide_all(focus,mx,my))
-	    do_foo(w);
+	    pull_focus();
 	break;
     }
 }
@@ -47,7 +39,7 @@ void do_menuitem(widget *w, int ev) {
     case EV_UP:
 	m = focus;
 	focus->d = w->d;
-	do_foo(focus);
+	pull_focus();
 	do_appcall(m, AEV_SELECT);
 	break;
     case EV_IN:

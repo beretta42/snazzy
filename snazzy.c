@@ -80,7 +80,11 @@ void pull_focus(void) {
 	fprintf(stderr,"focus stack exhausted\n");
 	exit(1);
     }
+    focus->flags |= FL_NOCHILD;
+    bound(focus);
+    ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
     focus = wstack[--wstack_ptr];
+    draw_coll(focus);
     lmove = NULL;
     down = NULL;
     mwidget = NULL;
@@ -240,6 +244,9 @@ void send_uevent(int e, int x, int y) {
     case UEV_DOWN:
 	do_event(n, EV_DOWN);
 	down = n;
+	// if we've click down off the form, then pull form stack
+	if (!n)
+	    pull_focus();
 	break;
     case UEV_UP:
 	/* send widget UP event, if it was the last widget pushed down,
