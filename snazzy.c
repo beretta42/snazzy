@@ -166,7 +166,6 @@ void draw_coll(widget *w) {
     if (w->flags & FL_NOCHILD) return;
     for (n = gp(w->child); n; n = gp(n->next)) {
 	draw_coll(n);
-	do_event(n, EV_DRAW);
     }
 }
 
