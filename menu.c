@@ -22,10 +22,17 @@ void do_menu(widget *w, int ev) {
 	push_focus(w);
 	break;
     case EV_CANCEL:
+	do_event(w, EV_DRAW);
 	if (! (w->flags & FL_WIDGET)) break;
 	w->flags &= ~FL_WIDGET;
-	bound(focus);
+	w->flags &= ~FL_WIDGET2;
 	pull_focus();
+	break;
+    case EV_CLICK:
+	if (w->flags & FL_WIDGET2) {
+	    do_event(w, EV_CANCEL);
+	} else
+	    w->flags ^= FL_WIDGET2;
 	break;
     }
 }

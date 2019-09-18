@@ -48,6 +48,7 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define FL_NODRAW      2        /* don't draw this widget */
 #define FL_NOCHILD     4        /* don't draw this widget's children */
 #define FL_WIDGET      128      /* private widget flag */
+#define FL_WIDGET2     256      /* private widget flag */
 
 /* event types 
   These event are send to from the engine to widgets
