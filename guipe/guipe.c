@@ -697,18 +697,24 @@ void do_menuitem() {
   Window widget */
 
 void vsize_window(widget *w) {
+    w->h = 8;
 }
 
 void vset_window(widget *w, int height) {
+    w->h = height;
 }
 
 void hsize_window(widget *w) {
 }
 
 void hset_window(widget *w, int width) {
+    w->w = width;
 }
 
 void vpos_window(widget *w, int x, int y) {
+    w->x = x;
+    w->y = y;
+    apply_just(w);
 }
 
 void do_window() {
@@ -720,6 +726,7 @@ void do_window() {
     cur->hsize = hsize_window;
     cur->hset = hset_window;
     cur->ctext = getstr();
+    cur->text = getstr();
     cur->rt_flags = RT_CLICKABLE;
 }
 

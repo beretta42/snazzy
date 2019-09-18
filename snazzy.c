@@ -120,6 +120,7 @@ void do_event(widget *w, int ev) {
 	do_panel,
 	do_menu,
 	do_menuitem,
+	do_window,
 	};
     if (w == NULL) return;
     // fixme: check for out of bounds here
@@ -246,7 +247,8 @@ void send_uevent(int e, int x, int y) {
 	down = n;
 	// if we've click down off the form, then pull form stack
 	if (!n)
-	    pull_focus();
+	    do_event(focus, EV_CANCEL);
+	    //pull_focus();
 	break;
     case UEV_UP:
 	/* send widget UP event, if it was the last widget pushed down,
@@ -255,7 +257,7 @@ void send_uevent(int e, int x, int y) {
 	*/
 	do_event(n, EV_UP);
 	if (n != down) {
-	    do_event(down, EV_UP);
+	    do_event(down, EV_CANCEL);
 	}
 	else {
 	    do_event(n, EV_CLICK);
@@ -288,5 +290,4 @@ void fixup(widget *w) {
 	fixup(n);
     }
 }
-
 

@@ -14,6 +14,7 @@ void do_button(widget *w, int ev) {
 	bounce(w);
 	ll_box(w->x, w->y, w->w, w->h);
 	break;
+    case EV_CANCEL:
     case EV_UP:
 	do_button(w, EV_DRAW);
 	break;

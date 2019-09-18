@@ -1,7 +1,7 @@
 all: snazzy.a test
 
 SRC = snazzy.c label.c button.c ll-sdl.c font.c poplist.c hslide.c panel.c
-SRC += menu.c
+SRC += menu.c window.c
 OBJ = $(SRC:.c=.o)
 
 snazzy.a: $(SRC) snazzy.h ll.h test.frm
@@ -14,6 +14,7 @@ snazzy.a: $(SRC) snazzy.h ll.h test.frm
 	$(CC) -c hslide.c
 	$(CC) -c panel.c
 	$(CC) -c menu.c
+	$(CC) -c window.c
 	$(AR) -rcs snazzy.a $(OBJ)
 	rm -f $(OBJ)
 

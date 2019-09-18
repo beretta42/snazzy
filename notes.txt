@@ -1,4 +1,20 @@
+TODO:
+   better, slight bigger font(s).
+   form stack.
+   too many global vars.
+   padding.
+   table / grid layout?
+   window dressings (macros?)
+   icons.
+   scrollable lists.
+   menu size: don't size on children, just text field.
+   makefile: make objs via make macros.
+   pop/menu widgets not popping back up
+   cursor mangles screen on init draw
+   mwidget is really just a flag - not a pointer.
 
+
+****************************************
 
 Three event interfaces:
 
@@ -8,6 +24,7 @@ Three event interfaces:
      
 3. from GUI to userspace
 
+*****************************************
 
 If we want loadable forms, we can't transmit (load) meaningful pointers. We can resolve references (once) after load.  Internal ptrs could be in relative form
 
@@ -18,4 +35,7 @@ If we want loadable forms, we can't transmit (load) meaningful pointers. We can 
     widget *child;
     char *text;
 
+9/13/19 - done. widget are all relative pointers now.
+
+*****************************************
 

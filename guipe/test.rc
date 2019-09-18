@@ -5,15 +5,23 @@ width 256
 height 192
 
 {
-   menu main "File" {
-      menuitem "Open"
-      menuitem "New"
-      menuitem "Exit"
-      menuitem "Alert"
+   window window1 window1
+   hbox {
+      menu main "File" {
+         menuitem "Open"
+         menuitem "New"
+         menuitem "Exit"
+         menuitem "Alert"
+      }
+      menu option "Options" {
+         menuitem "Opt 1  "
+         menuitem "Opt 2  "
+         menuitem "Opt 3  "
+      }
    }
    hbox {
        label "Flow Control:" height 14 
-       poplist example "examp" {
+       poplist example {
            popitem "None"
            popitem "XON/XOFF"
            popitem "Hardware"
@@ -33,7 +41,7 @@ height 192
 	vbox { label "yellow fish" label "red fish" label "blue fish"}
 	vbox { button foo "Foo" button gee "gee" label "fifteen" }
    }
-   hbox { label "Volume" hslide volume valmax 30 width 70 value 15 }
+   hbox { label "Volume" hslide volume valmax 11 width 70 value 5 }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
    	button quit "Quit" 

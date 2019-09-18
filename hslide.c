@@ -45,6 +45,7 @@ void do_hslide(widget *w, int ev) {
 	do_hslide(w, EV_DRAW);
 	break;
     case EV_UP:
+    case EV_CANCEL:
 	do_appcall(w, AEV_SELECT);
 	mwidget = NULL;
 	break;

@@ -9,6 +9,8 @@ void do_menu(widget *w, int ev) {
 	ll_puts(w->x1+9, w->y1+1, gpt(w->text));
 	break;
     case EV_DOWN:
+	if (w->flags & FL_WIDGET) break;
+	w->flags |= FL_WIDGET;
 	mwidget = w;
 	draw_back(w);
 	ll_puts(w->x1+10, w->y1+2, gpt(w->text));
@@ -19,9 +21,11 @@ void do_menu(widget *w, int ev) {
 	ll_box(bx1-1, by1-1, bw+2, bh+2);
 	push_focus(w);
 	break;
-    case EV_OUT:
-	if (!collide_all(focus,mx,my))
-	    pull_focus();
+    case EV_CANCEL:
+	if (! (w->flags & FL_WIDGET)) break;
+	w->flags &= ~FL_WIDGET;
+	bound(focus);
+	pull_focus();
 	break;
     }
 }
@@ -39,7 +43,7 @@ void do_menuitem(widget *w, int ev) {
     case EV_UP:
 	m = focus;
 	focus->d = w->d;
-	pull_focus();
+	do_event(focus, EV_CANCEL);
 	do_appcall(m, AEV_SELECT);
 	break;
     case EV_IN:

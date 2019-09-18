@@ -40,12 +40,14 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define TY_PANEL     7
 #define TY_MENU      8
 #define TY_MENUITEM  9
-#define TY_MAX      10
+#define TY_WINDOW   10 
+#define TY_MAX      11
 
 /* widget flags */
 #define FL_CLICKABLE   1        /* this widget can do mouse events */
 #define FL_NODRAW      2        /* don't draw this widget */
 #define FL_NOCHILD     4        /* don't draw this widget's children */
+#define FL_WIDGET      128      /* private widget flag */
 
 /* event types 
   These event are send to from the engine to widgets
@@ -58,6 +60,7 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define EV_MOVE   5       // mouse moved
 #define EV_IN     6       // mouse moved into a widget
 #define EV_OUT    7       // mouse moved out of a widget
+#define EV_CANCEL 8       // a previous down has been cancelled
 
 /* uevent types 
   These are events passed from the graphcial i/o system 
@@ -107,6 +110,7 @@ void do_hslide(widget *w, int ev);
 void do_panel(widget *w, int ev);
 void do_menu(widget *w, int ev);
 void do_menuitem(widget *w, int ev);
+void do_window(widget *w, int ev);
 
 int get_hslide(widget *w);
 void select_panel(widget *w, int sel);
