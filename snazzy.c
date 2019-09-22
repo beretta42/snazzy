@@ -29,6 +29,7 @@ widget *focus;
 widget *mwidget;
 widget *lmove = NULL;
 widget *down;
+widget *kwidget;
 widget *wstack[16];
 int wstack_ptr = 0;
 int mx;
@@ -37,7 +38,7 @@ int drawf;
 widget *clicked;
 int time;
 int dtime = 500;
-
+int key;
 
 
 static int swizzle(uint8_t *s) {
@@ -89,6 +90,7 @@ void pull_focus(void) {
     down = NULL;
     mwidget = NULL;
     clicked = NULL;
+    kwidget = NULL;
 }
 
 void draw_back(widget *w) {
@@ -121,6 +123,7 @@ void do_event(widget *w, int ev) {
 	do_menu,
 	do_menuitem,
 	do_window,
+	do_text,
 	};
     if (w == NULL) return;
     // fixme: check for out of bounds here
@@ -248,6 +251,10 @@ void send_uevent(int e, int x, int y) {
 	if (!n)
 	    do_event(focus, EV_CANCEL);
 	    //pull_focus();
+	if (kwidget && n != kwidget) {
+	    do_event(kwidget, EV_CANCEL);
+	    kwidget = NULL;
+	}
 	break;
     case UEV_UP:
 	/* send widget UP event, if it was the last widget pushed down,
@@ -269,6 +276,9 @@ void send_uevent(int e, int x, int y) {
 		time = ll_getticks();
 	    }
 	}
+	break;
+    case UEV_KEY:
+	do_event(kwidget, EV_KEY);
 	break;
     }
 }

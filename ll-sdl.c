@@ -192,15 +192,29 @@ void ll_loop() {
 	if (e.type == SDL_MOUSEBUTTONUP){
 	    send_uevent(UEV_UP, e.button.x/2, e.button.y/2);
 	}
+	if (e.type == SDL_KEYDOWN) {
+	    key = 0;
+	    switch (e.key.keysym.sym) {
+	    case SDLK_BACKSPACE: key = KEY_BS; break;
+	    case SDLK_RETURN:    key = KEY_RET; break;
+	    case SDLK_DELETE:    key = KEY_DEL; break;
+	    case SDLK_RIGHT:     key = KEY_RIGHT; break;
+	    case SDLK_LEFT:      key = KEY_LEFT; break;
+	    case SDLK_DOWN:      key = KEY_DOWN; break;
+	    case SDLK_UP:        key = KEY_UP; break;
+	    }
+	    if (key) send_uevent(UEV_KEY, mx, my);
+	}
 	if (e.type == SDL_TEXTINPUT) {
-	    fprintf(stderr,"%d\n", e.text.text[0]);
-	    if (e.text.text[0] == 'q') break;
-	    if (e.text.text[0] == 'r') {
+	    key = e.text.text[0];
+	    send_uevent(UEV_KEY, mx, my);
+	    /*if (key == 'q') break;
+	    if (key == 'r') {
 		ll_cset(0);
 		ll_clear();
 		draw_all(focus);
 		continue;
-	    }
+		}*/
 	}
 	ll_put_mouse(mx,my);
 	if (drawf) SDL_UpdateWindowSurface(win);

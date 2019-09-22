@@ -42,6 +42,7 @@ height 192
 	vbox { button foo "Foo" button gee "gee" label "fifteen" }
    }
    hbox { label "Volume" hslide volume valmax 11 width 70 value 5 }
+   text text1 text1
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
    	button quit "Quit" 

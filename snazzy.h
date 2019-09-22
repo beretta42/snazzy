@@ -40,8 +40,9 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define TY_PANEL     7
 #define TY_MENU      8
 #define TY_MENUITEM  9
-#define TY_WINDOW   10 
-#define TY_MAX      11
+#define TY_WINDOW   10
+#define TY_KEY      11
+#define TY_MAX      12
 
 /* widget flags */
 #define FL_CLICKABLE   1        /* this widget can do mouse events */
@@ -62,6 +63,7 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define EV_IN     6       // mouse moved into a widget
 #define EV_OUT    7       // mouse moved out of a widget
 #define EV_CANCEL 8       // a previous down has been cancelled
+#define EV_KEY    9       // a key was pressed
 
 /* uevent types 
   These are events passed from the graphcial i/o system 
@@ -70,9 +72,22 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define UEV_DOWN 0
 #define UEV_UP   1
 #define UEV_MOVE 2
+#define UEV_KEY  3
 
 /* these are high level event send from engine to app */
 #define AEV_SELECT 0
+
+
+/* these are non ascii keycodes */
+#define KEY_BS       0x08
+#define KEY_DEL      0x7f
+#define KEY_RET      0x10
+#define KEY_LEFT     0x81
+#define KEY_RIGHT    0x82
+#define KEY_UP       0x83
+#define KEY_DOWN     0x84
+#define KEY_ESC      0x85
+
 
 /* ??? fixme: s/b named different? */
 void ll_puts(int x, int y, char *t);
@@ -112,6 +127,7 @@ void do_panel(widget *w, int ev);
 void do_menu(widget *w, int ev);
 void do_menuitem(widget *w, int ev);
 void do_window(widget *w, int ev);
+void do_text(widget *w, int ev);
 
 int get_hslide(widget *w);
 void select_panel(widget *w, int sel);
@@ -120,6 +136,7 @@ extern widget *mwidget;
 extern widget *focus;
 extern widget *down;
 extern widget *lmove;
+extern widget *kwidget;
 extern int bx1;
 extern int by1;
 extern int bx2;
@@ -130,5 +147,6 @@ extern int mx;
 extern int my;
 extern int drawf;
 extern unsigned char databuffer[8192];
+extern int key;
 
 #endif /* SNAZZY_H */

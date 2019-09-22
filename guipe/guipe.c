@@ -29,6 +29,7 @@ enum {
     MENU,
     MENUITEM,
     WINDOW,
+    TEXT,
 };
 
 /*This an internal compile-time widget structure,
@@ -731,6 +732,41 @@ void do_window() {
 }
 
 
+void vsize_text(widget *w) {
+    w->h = 10;
+}
+
+void vset_text(widget *w, int height) {
+    w->h = height;
+}
+
+void hsize_text(widget *w) {
+
+}
+
+void hset_text(widget *w, int width) {
+    w->w = width;
+}
+
+void vpos_text(widget *w, int x, int y) {
+    w->x = x;
+    w->y = y;
+}
+
+    
+void do_text() {
+    new_widget();
+    cur->type = TEXT;
+    cur->vsize = vsize_text;
+    cur->vset = vset_text;
+    cur->vpos = vpos_text;
+    cur->hsize = hsize_text;
+    cur->hset = hset_text;
+    cur->ctext = getstr();
+    cur->text = getstr();
+    cur->rt_flags = RT_CLICKABLE;
+}
+
 
 /*    ui tie-ins 
 
@@ -835,6 +871,7 @@ command_t cmds[] = {
     { "menu",        do_menu },
     { "menuitem",    do_menuitem },
     { "window",      do_window },
+    { "text",        do_text },
     { NULL, NULL },
 };
 
