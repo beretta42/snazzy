@@ -175,6 +175,7 @@ void ll_loop() {
     int ret;
     SDL_Event e;
     SDL_UpdateWindowSurface(win);
+    ll_put_mouse(0,0);
     while(1) {
 	ret = SDL_PollEvent(&e);
 	if (ret == 0)
