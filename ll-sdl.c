@@ -120,13 +120,17 @@ void ll_char_draw(int x, int y, unsigned char *p){
 extern unsigned char font[];
 
 void ll_puts(int x, int y, char *t) {
-    int n = strlen(t);
-    while (n--) {
-	ll_char_draw(x, y, font + (*t-32)*6);
+    ll_putn(x, y, t, strlen(t));
+}
+
+void ll_putn(int x, int y, char *t, int len) {
+    while (len--) {
+	ll_char_draw(x,y, font + (*t-32)*6);
 	x += 4;
 	t++;
     }
 }
+    
 
 void ll_draw_back(int x, int y, int w, int h) {
     ll_cset(0);
@@ -202,6 +206,7 @@ void ll_loop() {
 	    case SDLK_LEFT:      key = KEY_LEFT; break;
 	    case SDLK_DOWN:      key = KEY_DOWN; break;
 	    case SDLK_UP:        key = KEY_UP; break;
+	    case SDLK_ESCAPE:    key = KEY_ESC; break;
 	    }
 	    if (key) send_uevent(UEV_KEY, mx, my);
 	}

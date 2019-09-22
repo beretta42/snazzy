@@ -278,6 +278,7 @@ void send_uevent(int e, int x, int y) {
 	}
 	break;
     case UEV_KEY:
+	if (!kwidget && key == KEY_ESC) exit(0);
 	do_event(kwidget, EV_KEY);
 	break;
     }
