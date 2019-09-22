@@ -76,7 +76,7 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 
 /* these are high level event send from engine to app */
 #define AEV_SELECT 0
-
+#define AEV_TEXT   1
 
 /* these are non ascii keycodes */
 #define KEY_BS       0x08
@@ -131,6 +131,7 @@ void do_text(widget *w, int ev);
 
 int get_hslide(widget *w);
 void select_panel(widget *w, int sel);
+void set_text(widget *w, char *appbuf, int len);
 
 extern widget *mwidget;
 extern widget *focus;

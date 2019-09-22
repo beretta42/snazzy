@@ -1,14 +1,24 @@
 #include <stdio.h>
+#include <string.h>
 #include "snazzy.h"
 #include "ll.h"
 
-#define BUFMAX 256
-static char buf[BUFMAX + 1];
+static char *buf;
 static int pos = 0;           // curent cursor position
 static int len = 0;           // length of buffer
 static int scr = 0;           // scrolling position
 static int max = 0;           // max chars this widget can display
-static int bmax = BUFMAX;
+static int bmax = 0;
+
+
+/* call this from app when AEV_TEXT is sent */
+void set_text(widget *w, char *appbuf, int applen) {
+    buf = appbuf;
+    bmax = applen;
+    scr = w->y1;
+    max = (w->w - 4) / 4;
+    len = strlen(buf);
+}
 
 static void fix(void) {
     if (pos-scr > max) {
@@ -32,8 +42,7 @@ static void insert(char k) {
 
 static void del() {
     int i;
-    if (pos == bmax) return;
-    if (!len) return;
+    if (pos == len) return;
     for (i = pos; i <= len; i++) {
 	buf[i] = buf[i + 1];
     }
@@ -61,6 +70,7 @@ static void bs() {
 void do_text(widget *w, int ev) {
     switch (ev) {
     case EV_DRAW:
+	if (!kwidget) do_appcall(w, AEV_TEXT);
 	draw_back(w);
 	ll_box(w->x, w->y, w->w, w->h);
 	ll_putn(w->x+2, w->y+2, buf+scr, MIN(len-scr,max));
@@ -69,18 +79,17 @@ void do_text(widget *w, int ev) {
 	}
 	break;
     case EV_CLICK:
-	/* get buffer from app here */
-	pos = ((mx- w->x + 2 - 3) / 4) + scr;
+	if (!kwidget) do_appcall(w, AEV_TEXT);
+	pos = ((mx - w->x + 2 - 3) / 4) + scr;
 	pos = MIN(pos,len);
 	kwidget = w;
-	max = (w->w - 4) / 4;
 	do_event(w, EV_DRAW);
 	break;
     case EV_CANCEL:
-	fprintf(stderr,"text canceled\n");
 	kwidget = NULL;
 	do_event(w, EV_DRAW);
-	/* save to app here */
+	w->y1 = scr;
+	do_appcall(w, AEV_SELECT);
 	break;
     case EV_KEY:
 	switch (key) {
