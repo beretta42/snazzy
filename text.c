@@ -85,8 +85,8 @@ void do_text(widget *w, int ev) {
 	break;
     case EV_CANCEL:
 	kwidget = NULL;
-	do_event(w, EV_DRAW);
 	w->y1 = scr;
+	do_event(w, EV_DRAW);
 	do_appcall(w, AEV_SELECT);
 	break;
     case EV_KEY:
