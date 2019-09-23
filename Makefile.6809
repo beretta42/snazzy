@@ -1,6 +1,6 @@
 all: snazzy.a test
 CC = m6809-unknown-gcc
-CCFLAGS = -Os
+CFLAGS = -Os -DBARE
 AR = m6809-unknown-ar
 LD = m6809-unknown-ld
 AS = m6809-unknown-as
@@ -8,18 +8,9 @@ SRC = snazzy.c label.c button.c ll-coco.c font.c poplist.c hslide.c panel.c
 SRC += menu.c window.c text.c
 OBJ = $(SRC:.c=.o)
 
-snazzy.a: $(SRC) snazzy.h ll.h test.frm
-	$(CC) $(CCFLAGS) -c snazzy.c
-	$(CC) $(CCFLAGS) -c label.c
-	$(CC) $(CCFLAGS) -c button.c
-	$(CC) $(CCFLAGS) -c ll-coco.c
-	$(CC) $(CCFLAGS) -c font.c
-	$(CC) $(CCFLAGS) -c poplist.c
-	$(CC) $(CCFLAGS) -c hslide.c
-	$(CC) $(CCFLAGS) -c panel.c
-	$(CC) $(CCFLAGS) -c menu.c
-	$(CC) $(CCFLAGS) -c window.c
-	$(CC) $(CCFLAGS) -c text.c
+$(OBJ): $(SRC)
+
+snazzy.a: $(OBJ) snazzy.h ll.h test.frm
 	$(AR) -rc snazzy.a $(OBJ)
 	rm -f $(OBJ)
 

@@ -1,13 +1,17 @@
 #ifndef SNAZZY_H
 #define SNAZZY_H
 
-//#include "stdint.h" // fixme: s/b our .h
-
+#ifdef BARE
 typedef int int16_t;
 typedef unsigned int uint16_t;
 typedef unsigned char uint8_t;
-#define NULL ((void *)0)
+#endif
 
+#ifdef UNIX
+#include <stdint.h> // fixme: s/b our .h
+#endif
+
+#define NULL ((void *)0)
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
 #define abs(a) (a < 0 ? -a : a)
