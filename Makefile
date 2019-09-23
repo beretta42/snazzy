@@ -31,5 +31,5 @@ guipe/guipe:  guipe/guipe.c
 	$(MAKE) -C guipe all
 
 clean:
-	rm -f *.o snazzy *~ test.h test.frm test snazzy.a
+	rm -f *.o snazzy *~ test.h test.frm test snazzy.a test.map test.bin
 	$(MAKE) -C guipe clean

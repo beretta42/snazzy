@@ -4,7 +4,6 @@
 
 */
 
-#include <stdint.h>
 #include "ll.h"
 #include "snazzy.h"
 

@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 /* 
 
    Snazzy - a GUI 
@@ -41,17 +38,38 @@ int dtime = 500;
 int key;
 
 
+
+int szy_strlen(char *p) {
+    int a = 0;
+    while(*p++) a++;
+    return a;
+}
+
+int szy_strcmp(char *s1, char *s2) {
+    while(1){
+	if (*s1 != *s2) return 1;
+	if (*s1 == 0) return 0;
+	s1++;
+	s2++;
+    }
+}
+
+void szy_exit(int x) {
+}
+
+
 static int swizzle(uint8_t *s) {
     return s[0] * 0x100 + s[1];
 }
 
+
 widget *find_widget(char *id) {
     uint8_t *s = gpt(*((uint16_t *)databuffer));
     while (*s) {
-	if (!strcmp(id,s)) {
-	    return gp(swizzle(s + strlen(s) + 1));
+	if (!szy_strcmp(id,s)) {
+	    return gp(swizzle(s + szy_strlen(s) + 1));
 	}
-	s += strlen(s) + 3;
+	s += szy_strlen(s) + 3;
     }
     return NULL;
 }
@@ -78,8 +96,8 @@ void push_focus(widget *w) {
 
 void pull_focus(void) {
     if (wstack_ptr < 1) {
-	fprintf(stderr,"focus stack exhausted\n");
-	exit(1);
+	//fprintf(stderr,"focus stack exhausted\n");
+	szy_exit(1);
     }
     focus->flags |= FL_NOCHILD;
     bound(focus);
@@ -278,7 +296,7 @@ void send_uevent(int e, int x, int y) {
 	}
 	break;
     case UEV_KEY:
-	if (!kwidget && key == KEY_ESC) exit(0);
+	if (!kwidget && key == KEY_ESC) szy_exit(0);
 	do_event(kwidget, EV_KEY);
 	break;
     }

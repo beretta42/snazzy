@@ -36,7 +36,7 @@ void do_hslide(widget *w, int ev) {
     case EV_DOWN:
 	x = mx - 3 - w->d;
 	if (abs(x) > 3) {
-	    v = (w->w - 6) / 10;
+	    v = (unsigned)(w->w - 6) / 10;
 	    w->d += x < 0 ? -v : v;
 	} else {
 	    w->d = mx - 3;
@@ -53,7 +53,7 @@ void do_hslide(widget *w, int ev) {
 }
 
 int get_hslide(widget *w) {
-    return (w->d-w->x) * w->x1 / (w->w-6);
+    return (unsigned)((w->d-w->x) * w->x1) / (w->w-6);
 }
 
 

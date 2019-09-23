@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <string.h>
 #include "snazzy.h"
 #include "ll.h"
 
@@ -17,7 +15,7 @@ void set_text(widget *w, char *appbuf, int applen) {
     bmax = applen;
     scr = w->y1;
     max = (w->w - 4) / 4;
-    len = strlen(buf);
+    len = szy_strlen(buf);
 }
 
 static void fix(void) {

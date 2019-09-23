@@ -1,4 +1,3 @@
-#include <stdio.h> //fixme for debug
 #include "snazzy.h"
 #include "ll.h"
 

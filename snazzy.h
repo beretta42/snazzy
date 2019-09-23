@@ -1,7 +1,12 @@
 #ifndef SNAZZY_H
 #define SNAZZY_H
 
-#include <stdint.h> // fixme: s/b our .h
+//#include "stdint.h" // fixme: s/b our .h
+
+typedef int int16_t;
+typedef unsigned int uint16_t;
+typedef unsigned char uint8_t;
+#define NULL ((void *)0)
 
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
@@ -116,6 +121,9 @@ void ll_deinit(void);
 void ll_loop(void);
 widget *find_widget(char *id);
 widget *child_by_index(widget *w, int i);
+void szy_exit(int r);
+int szy_strlen(char *p);
+int szy_strcmp(char *s1, char *s2);
 
 /* widget event handlers */
 void do_label(widget *w, int ev);
