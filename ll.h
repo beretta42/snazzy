@@ -14,3 +14,9 @@ void ll_puts(int x, int y, char *t);
 void ll_putn(int x, int y, char *t, int max);
 void ll_draw_back(int x, int y, int w, int h);
 void ll_loop(void);
+
+volatile extern int mouse_x;
+volatile extern int mouse_y;
+volatile extern int mouse_b;
+volatile extern int mouse_f;
+volatile extern int mouse_mf;

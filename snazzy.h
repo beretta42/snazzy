@@ -160,6 +160,6 @@ extern int mx;
 extern int my;
 extern int drawf;
 extern unsigned char databuffer[8192];
-extern int key;
+volatile extern unsigned char key;
 
 #endif /* SNAZZY_H */

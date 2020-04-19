@@ -35,7 +35,7 @@ int drawf;
 widget *clicked;
 int time;
 int dtime = 500;
-int key;
+//int key;
 
 
 
@@ -130,7 +130,7 @@ static void do_noop(widget *w, int ev) {
 typedef void (*DOPTR)(widget *w, int ev);
 void do_event(widget *w, int ev) {
     static DOPTR tab[TY_MAX] = {
-	do_noop,    /*  vbox and hbox down have a runtine */
+	do_noop,    /*  vbox and hbox don't have a runtine */
 	do_noop,
 	do_label,
 	do_button,

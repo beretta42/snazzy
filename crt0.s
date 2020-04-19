@@ -6,6 +6,8 @@
 	export _mulhi3
 	export _udivhi3
 	export _enable_poll
+	export _exit
+	export _timer
 	import _main
 	import _kpoll
 	import poll
@@ -21,9 +23,7 @@ start:	orcc	#$50		; off interrupts
 	cmpa	#$fe
 	bne	b@
 	sta	$ffd9		; high speed poke
-b@	ldx	#noop
-	stx	$5c0c
-	ldx	#interrupt	; set interrupt vector
+b@	ldx	#interrupt	; set interrupt vector
 	stx	$10d		;
 	lds	#$8000		; set stack
 	ldx	#.bss_base	; clear bss
@@ -31,21 +31,21 @@ b@	ldx	#noop
 a@	clr	,x+		;
 	leay	-1,y		;
 	bne	a@		;
-	andcc	#~$50		; on interrupts
-	jmp	_main		; jump to C's main
+	jsr	_main		; jump to C's main
+c@	bra	c@		; if we return from main, then quit
 
-noop	rts
+
+_exit:	jmp	$a00e
 	
 interrupt:
+	;; fixme:
 	ldd	_timer
 	addd	#1
 	std	_timer
+	std	$6003
+	jsr	_do_joy
+        jsr     _kpoll          ; go poll keyboard
         lda     $ff02           ; clear vsync pia
-*	jsr	_do_joy
-*       jsr     _kpoll          ; go poll keyboard
-*	tst	_enable_poll	; is call serial polling ok
-	beq	a@		; nope - skip
-*       jsr     poll            ; go poll serial device
 a@      rti                     ; return from interrupt
 
 _di:

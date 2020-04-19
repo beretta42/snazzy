@@ -1,0 +1,3 @@
+10 RUNM"TEST.BIN"
+
+

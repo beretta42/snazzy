@@ -12,6 +12,7 @@ TODO:
    pop/menu widgets not popping back up
    cursor mangles screen on init draw
    mwidget is really just a flag - not a pointer.
+   conditionaly compile endian swizzle.
 
 
 ****************************************

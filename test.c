@@ -53,11 +53,13 @@ void do_text2(widget *w, int ev) {
 	fprintf(stderr,"text2: %s\n", buf2);
 }
 
+#include "ll.h"
+
 int main(int argc, char *argv[]) {
     int ret;
     
     ll_init();
-    
+
     load("test.frm");
     reg_appcall("quit", do_quit);
     reg_appcall("save", do_save);
@@ -71,6 +73,5 @@ int main(int argc, char *argv[]) {
     draw_all(focus);
     ll_loop();
     ll_deinit();
-    
     return 0;
 }
