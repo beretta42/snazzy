@@ -20,7 +20,7 @@ test: snazzy.a test-coco.c crt0.s graf.s joyll.s joy.c
 	$(AS) -o crt0.o crt0.s
 	$(CC) $(CCFLAGS) -c test-coco.c
 	lwlink -s basic.link -m test.map -o test.bin crt0.o test-coco.o \
-	graf.o snazzy.a
+	snazzy.a
 
 test.dsk: test.bin
 	decb2 mkfs test.dsk
