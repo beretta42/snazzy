@@ -3,6 +3,7 @@
 Low level graphics routines for coco 2
 
 */
+#include "coco.h"
 #include "snazzy.h"
 #include "ll.h"
 
@@ -137,5 +138,5 @@ int load(char *name) {
 
 
 unsigned int ll_getticks(void) {
-    return 0;
+    return timer;
 }
