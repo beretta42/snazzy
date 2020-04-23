@@ -30,6 +30,7 @@ void main(void) {
     reg_appcall("quit", do_quit);
     reg_appcall("text1", do_text1);
     panel = find_widget("ren");
+    ll_setclip(0,0,256,192);
     draw_all(focus);
     ll_loop();
     while(1);

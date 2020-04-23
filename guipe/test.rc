@@ -46,7 +46,7 @@ height 192
    hbox { label "another: " text text2 text2 width 150 }
    hbox height 20 { button ok "Ok"  button save "Save"
    	hbox maxw
-   	button quit "Quit" 
+   	button quit "Quit"
    }
 }
 

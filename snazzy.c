@@ -1,12 +1,12 @@
-/* 
+/*
 
-   Snazzy - a GUI 
+   Snazzy - a GUI
 
 
 */
 
 
-/**************** 
+/****************
    Widgets
 *****************/
 
@@ -35,8 +35,6 @@ int drawf;
 widget *clicked;
 int time;
 int dtime = 500;
-//int key;
-
 
 
 int szy_strlen(char *p) {
@@ -142,7 +140,7 @@ void do_event(widget *w, int ev) {
 	do_menuitem,
 	do_window,
 	do_text,
-	};
+    };
     if (w == NULL) return;
     // fixme: check for out of bounds here
     tab[w->type](w, ev);
@@ -156,7 +154,7 @@ widget *gp(int o) {
 char *gpt(int o) {
     return (char *)gp(o);
 }
-    
+
 void bound(widget *w) {
     widget *n = gp(w->child);
     bx1 = n->x;
@@ -178,10 +176,10 @@ void draw_coll(widget *w) {
     widget *n;
     if (w->flags & FL_NODRAW) return;
     if ( w->x > bx2 ||
-    	 w->y > by2 ||
-    	 w->x + w->w < bx1 ||
-    	 w->y + w->h < by1 )
-    	return;
+	 w->y > by2 ||
+	 w->x + w->w < bx1 ||
+	 w->y + w->h < by1 )
+	return;
     drawf = 1;
     do_event(w, EV_DRAW);
     if (w->flags & FL_NOCHILD) return;
@@ -242,7 +240,7 @@ widget *child_by_index(widget *w, int i) {
     return n;
 }
 
-/* called to send event to widget system 
+/* called to send event to widget system
      w = root widget
      e = input event
      x,y = coordinates of input event (if any)
@@ -304,6 +302,7 @@ void send_uevent(int e, int x, int y) {
 
 
 // fixme: don't call me if target is BIG ENDIAN
+/*
 void fixup(widget *w) {
     widget *n;
     uint8_t *s = (uint8_t *)w;
@@ -318,4 +317,4 @@ void fixup(widget *w) {
 	fixup(n);
     }
 }
-
+*/

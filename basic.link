@@ -1,4 +1,5 @@
-section .text load 0e00
+section .dp   load 0e00
+section .text
 section .text.startup
 section .data
 section .bss

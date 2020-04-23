@@ -6,10 +6,7 @@ Low level graphics routines for coco 2
 #include "coco.h"
 #include "snazzy.h"
 #include "ll.h"
-
-
-void ll_hline_setup(int x, int y, int w);
-void ll_hline_go(void);
+#include "graf.h"
 
 int mx, my;
 
@@ -27,10 +24,10 @@ int ll_init(void) {
     *(unsigned char *)0xffcf = 0x00;
     *(unsigned char *)0xffd1 = 0x00;
     *(unsigned char *)0xffd2 = 0x00;
-    ll_cset(0);
-    ll_clear();
+    graf_cset(0);
+    graf_clear();
     mouse_show();
-    ll_cset(1);
+    graf_cset(1);
     ei();
     return 0;
 }
@@ -40,18 +37,33 @@ void ll_deinit(void) {
 
 }
 
+void ll_setclip(int x, int y, int w, int h) {
+    graf_setclip(x, y, w, h);
+}
 
-void ll_hline(int x, int y, int w){
-    ll_hline_setup(x, y, w);
-    ll_hline_go();
+void ll_setpixel(int x, int y) {
+    graf_setpixel(x, y);
+}
+
+void ll_bar(int x, int y, int w, int h){
+    graf_bar(x, y, w, h);
+}
+
+void ll_cset(int color) {
+    graf_cset(color);
+}
+
+void ll_char_draw(int x, int y, unsigned char *p) {
+    graf_char_draw(x, y, p);
 }
 
 
-void ll_bar(int x, int y, int w, int h){
-    ll_hline_setup(x, y, w);
-    while(h--){
-	ll_hline_go();
-    }
+void ll_vline(int x, int y, int h) {
+    graf_bar(x, y, 1, h);
+}
+
+void ll_hline(int x, int y, int w){
+    graf_bar(x, y, w, 1);
 }
 
 void ll_box(int x, int y, int w, int h){
@@ -59,7 +71,6 @@ void ll_box(int x, int y, int w, int h){
     ll_hline(x, y+h-1, w);
     ll_vline(x, y, h);
     ll_vline(x+w-1, y, h);
-
 }
 
 extern unsigned char font[];
@@ -70,21 +81,19 @@ void ll_puts(int x, int y, char *t) {
 
 void ll_putn(int x, int y, char *t, int len) {
     while (len--) {
-	ll_char_draw(x,y, font + (*t-32)*6);
+	graf_char_draw(x,y, font + (*t-32)*6);
 	x += 4;
 	t++;
     }
 }
-    
+
 
 void ll_draw_back(int x, int y, int w, int h) {
-    ll_cset(0);
-    ll_bar(x,y,w,h);
-    ll_cset(1);
+    graf_cset(0);
+    graf_bar(x,y,w,h);
+    graf_cset(1);
 }
 
-
-#include "snazzy.h"
 
 void ll_loop() {
     while(1) {

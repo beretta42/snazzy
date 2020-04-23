@@ -34,8 +34,8 @@ void do_joy(void) {
     }
     if (hidden == 0) {
 	if ((x1 != mouse_x) || (y1 != mouse_y)){
-	    tgi_unput_mouse(mouse_x,mouse_y);
-	    tgi_put_mouse(x1,y1);
+	    graf_unput_mouse(mouse_x,mouse_y);
+	    graf_put_mouse(x1,y1);
 	}
     }
     mouse_x = x1;
@@ -51,7 +51,7 @@ void do_joy(void) {
 void mouse_show(void) {
     di();
     if (hidden == 1){
-	tgi_put_mouse(mouse_x, mouse_y);
+	graf_put_mouse(mouse_x, mouse_y);
 	hidden = 0;
     }
     ei();
@@ -60,7 +60,7 @@ void mouse_show(void) {
 void mouse_hide(void) {
     di();
     if (hidden == 0){
-	tgi_unput_mouse(mouse_x, mouse_y);
+	graf_unput_mouse(mouse_x, mouse_y);
 	hidden = 1;
     }
     ei();

@@ -19,11 +19,15 @@ _enable_poll
 	.db	0
 
 start:	orcc	#$50		; off interrupts
+	ldb	#$0e
+	tfr	b,dp		; set DP
 	lda	$fffc		; are we a coco3?
 	cmpa	#$fe
 	bne	b@
 	sta	$ffd9		; high speed poke
-b@	ldx	#interrupt	; set interrupt vector
+b@	ldx	#reset
+	stx	>$72
+	ldx	#interrupt	; set interrupt vector
 	stx	$10d		;
 	lds	#$8000		; set stack
 	ldx	#.bss_base	; clear bss
@@ -35,7 +39,9 @@ a@	clr	,x+		;
 c@	bra	c@		; if we return from main, then quit
 
 
-_exit:	jmp	$a00e
+_exit:	orcc	#$50
+	clr	$72
+	jmp	[0xfffe]
 	
 interrupt:
 	;; fixme:
@@ -47,6 +53,10 @@ interrupt:
         jsr     _kpoll          ; go poll keyboard
         lda     $ff02           ; clear vsync pia
 a@      rti                     ; return from interrupt
+
+
+reset:	nop
+	bra	start
 
 _di:
         orcc    #$50            ; stop interrupts

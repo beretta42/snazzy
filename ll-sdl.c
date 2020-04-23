@@ -15,7 +15,7 @@ SDL_Surface *mouse_back = NULL;
 SDL_Rect mouse_rec;
 int mx, my;
 int pen = 0;
-
+volatile unsigned char key;
 
 int ll_init(void) {
     int ret;

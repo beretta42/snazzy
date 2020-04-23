@@ -1,25 +1,46 @@
-	export _ll_clear
-	export _ll_setpixel
-	export _ll_cset
-*	export _tgi_char_blit
-	export _ll_char_draw
-	export _tgi_char_blit_erase
-	export _tgi_char_blit_rewrite
-*	export _ll_hline
-	export _ll_vline
-	export _tgi_put_mouse
-	export _tgi_unput_mouse
+	export _graf_clear
+	export _graf_setpixel
+	export _graf_cset
+	export _graf_char_draw
+	export _graf_put_mouse
+	export _graf_unput_mouse
+	export _graf_setclip
 	export _testfrm
-	export _ll_hline_setup
-	export _ll_hline_go
+	export _graf_bar
 
 	import _font
 
 	section .text
 
+;;; sets the clipping rectangle
+;;; r y w h
+_graf_setclip:
+	jsr	set_xywh
+	ldd	<xin
+	std	<west
+	addd	<win
+	std	<east
+	ldd	<yin
+	std	<north
+	addd	<hin
+	std	<south
+
+;;; sets DP args from C stack
+;;; r r y w h, X has x 
+set_xywh:	
+	stx	<xin
+	ldx	4,s
+	stx	<yin
+	ldx	6,s
+	stx	<win
+	ldx	8,s
+	stx	<hin
+	ldx	<xin
+	rts
+	
 ;;; clear the screen
 ;;; fixme: should clear to pen color
-_ll_clear
+_graf_clear
 	ldb	#128
 	pshs	b,y,u
 	ldu	#$6000+(32*192)
@@ -40,7 +61,7 @@ a@	pshu	d,x,y
 
 
 ;;; put a pixel on screen  x y r y
-_ll_setpixel
+_graf_setpixel
 	pshs	x,y
 	ldb	1,s
 	andb	#$7
@@ -63,75 +84,41 @@ smc2	orb	,y
 	puls	x,y,pc
 
 
-_ll_cset
+_graf_cset
 	cmpx	#0
 	beq	a@
 	ldx	#tab
 	stx	smc1+2
-	stx	smc3+1
-	stx	smc11+1
 	;; patch up hline_setup
-	stx	smc25+2 	; set tab addr
-	ldb	#$00		; set initial mask
-	stb	smc26+1
-	ldb	#$aa		; ora ,s opcode
-	stb	smc27
-	ldb	#$25		; bcs
-	stb	smc28
-	ldd	#tabl		; set tabl
-	std	smc29+2
+	ldb	#$12		; noop
+	stb	smc40
+	stb	smc41
 	ldb	#$8a		; ora opcode
 	stb	smc21
 	stb	smc24
 	ldb	#$ff		; lda #$ff opcode
 	stb	smc23+1
-	ldd	#$1cfe		; andcc opcode	
-	std	smc30
-	;; 
+	;;
 	ldb	#$ea
 	stb	smc2
-	stb	smc5
-	ldb	#$ca
-	stb	smc12
-	ldb	#$80
-	stb	smc4+1
-	ldb	#$24
-	stb	smc6
 	rts
 a@
 	ldx	#tabi
 	stx	smc1+2
-	stx	smc3+1
-	stx	smc11+1
 	;; patch up hline_setup
-	stx	smc25+2 	; set tabi addr
-	ldb	#$ff		; set initial mask
-	stb	smc26+1
-	ldb	#$a4		; anda ,s opcode
-	stb	smc27
-	ldb	#$24		; bcc
-	stb	smc28
-	ldd	#tabli		; set tabl
-	std	smc29+2
+	ldb	#$53		; comb
+	stb	smc40
+	stb	smc41
 	ldb	#$84		; anda #0 opcode
 	stb	smc21
 	stb	smc24
 	ldb	#$00		; lda #$ff opcode
 	stb	smc23+1
-	ldd	#$1a01
-	std	smc30
-	;; 
+	;;
 	ldb	#$e4
 	stb	smc2
-	stb	smc5
-	ldb	#$c4
-	stb	smc12
-	ldb	#~$80
-	stb	smc4+1
-	ldb	#$25
-	stb	smc6
 	rts
-	
+
 	;; table of shifted bit masks
 tab
 	.db	$80
@@ -162,267 +149,71 @@ tabl:
 	.db	$fc
 	.db	$fe
 
-tabli:
-	.db	$ff
-	.db	$7f
-	.db	$3f
-	.db	$1f
-	.db	$0f
-	.db	$07
-	.db	$03
-	.db	$01
 
 ;;; put a char on screen
-;;;   b x y, u, r y ptr
-_ll_char_draw
-*_tgi_char_blit
+;;;  fixme: cliping for X axis
+;;;   b X y, u, r Y PTR
+_graf_char_draw
 	pshs	b,x,y,u
-	;; u = find ptr to glyph
-	ldu	11,s
-	;; y = find screen ptr
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	12,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	tfr	d,y
-	;; tos = find rotation
-	ldb	2,s
-	andb	#7
+	;; new code reuse
+	stx	<xin
+	ldx	9,s
+	stx	<yin
+	ldd	#8
+	std	<win
+	ldd	#6
+	std	<hin
+	jsr	calc
+	bcs	out@
+	;; get new height push as counter
+	ldb	<hin+1
 	pshs	b
+	;; if cut off top then jump through source
+	ldu	12,s
+	ldb	<vtop
+	ble	b@
+	leau	b,u
+	;; ptrs for copying from glyph to screen
+b@	ldy	<scrpos
+	;; tos = find rotation calc duff's
+	ldb	3,s
+	andb	#7
+	negb
+	addb	#7
+	lslb			; multiply by two
+	stb	smc99+1
 	;; blit
-	ldb	,u+
-	bsr	foo
-	ldb	,u+
-	bsr	foo
-	ldb	,u+
-	bsr	foo
-	ldb	,u+
-	bsr	foo
-	ldb	,u+
-	bsr	foo
-	ldb	,u+
-	bsr	foo
+a@	lda	,u+
+	bsr	foo@
+	dec	,s		; dec counter
+	bne	a@		; loop if more
+	puls	b
 	;; return
-	puls	d,x,y,u,pc
-
-foo
-	lda	2,s
-	pshs	a
-	beq	b@
-	clra
-a@	lsrb
-	rora
-	dec	,s
-	bne	a@
-	ora	1,y
-	sta	1,y
-b@	orb	,y
-	stb	,y
-	leay	32,y
-	puls	b,pc
-
-
-;;; put a char on screen
-;;;   b x y, u, r y ptr
-_tgi_char_blit_erase
-	pshs	b,x,y,u
-	;; u = find ptr to glyph
-	ldu	11,s
-	;; y = find screen ptr
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	12,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	tfr	d,y
-	;; tos = find rotation
-	ldb	2,s
-	andb	#7
-	pshs	b
-	;; blit
-	ldb	,u+
-	bsr	foo1
-	ldb	,u+
-	bsr	foo1
-	ldb	,u+
-	bsr	foo1
-	ldb	,u+
-	bsr	foo1
-	ldb	,u+
-	bsr	foo1
-	ldb	,u+
-	bsr	foo1
-	;; return
-	puls	d,x,y,u,pc
-
-foo1	lda	2,s
-	pshs	a
-	beq	b@
-	clra
-a@	lsrb
-	rora
-	dec	,s
-	bne	a@
-	coma
-	anda	1,y
-	sta	1,y
-b@	comb
-	andb	,y
-	stb	,y
-	leay	32,y
-	puls	b,pc
-
-;;; put a char on screen - rewrite mode
-;;;   b x y, u, r y ptr
-_tgi_char_blit_rewrite
-	pshs	b,x,y,u
-	;; u = find ptr to glyph
-	ldu	11,s
-	;; y = find screen ptr
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	12,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	tfr	d,y
-	;; tos = find rotation
-	ldb	2,s
-	andb	#7
-	pshs	b
-	;; find masks
-	pshs	b
-	ldd	#$f000
-	tst	,s
-	beq	a@
-b@	lsra
+out@	puls	b,x,y,u,pc	; pull counter, restore
+foo@	clrb
+smc99	bra	end@
+	lsra
 	rorb
-	dec	,s
-	bne	b@
-a@	leas	1,s
-	coma
-	comb
-	sta	smc10+1
-	stb	smc10+3
-	;; blit
-	lda	,u+
-	bsr	foo2
-	lda	,u+
-	bsr	foo2
-	lda	,u+
-	bsr	foo2
-	lda	,u+
-	bsr	foo2
-	lda	,u+
-	bsr	foo2
-	lda	,u+
-	bsr	foo2
-	;; return
-	puls	d,x,y,u,pc
-
-foo2	ldb	2,s
-	pshs	b
-	clrb
-	tst	,s
-	beq	b@
-a@	lsra
+	lsra
 	rorb
-	dec	,s
-	bne	a@
-b@	pshs	d
-	ldd	,y
-smc10	anda	#0
-	andb	#0
-	ora	,s+
-	orb	,s+
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+end@	anda	<fmask
+	andb	<lmask
+	ora	,y
+	orb	1,y
 	std	,y
 	leay	32,y
-	puls	b,pc
+	rts
 
-
-;;; draw a vertial line
-;;; t X y r Y H
-_ll_vline:
-	pshs	x,y
-	;; y = find screen ptr
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	9,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	tfr	d,y
-	;; b = mask
-	ldb	1,s
-	andb	#7
-smc11	ldx	#tab
-	ldb	b,x
-	stb	smc12+1
-	lda	9,s
-	pshs	a
-a@	ldb	,y
-smc12	orb	#0
-	stb	,y
-	leay	32,y
-	dec	,s
-	bne	a@
-	puls	b,x,y,pc
-
-;;; draw a horizontal line
-;;;   X y r Y W
-;;;  fixme: more speedups possible, do we bother?
-*_ll_hline
-	pshs	x,y
-	;; y = find screen ptr
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	9,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	tfr	d,y
-	;; tos = bit mask
-	ldb	1,s
-	andb	#7
-smc3	ldx	#tab
-	ldb	b,x
-	pshs	b
-	;; loop
-	lda	10,s
-a@	ldb	,y
-smc5	orb	,s
-	stb	,y
-	lsr	,s
-smc6	bcc	b@
-	leay	1,y
-smc4	ldb	#$80
-	stb	,s
-b@	deca
-	bne	a@
-	puls	b,x,y,pc
 
 mouse	.dw	0x8000, 0xe000, 0xf800, 0xfc00, 0xf000, 0x9800, 0x0c00, 0x0600
 	.dw	0x0800, 0x0e00, 0x0f80, 0x0fc0, 0x0f00, 0x0980, 0x00c0, 0x0060
@@ -434,8 +225,8 @@ mouse	.dw	0x8000, 0xe000, 0xf800, 0xfc00, 0xf000, 0x9800, 0x0c00, 0x0600
 	.dw	0x0400, 0x0700, 0x07c0, 0x07e0, 0x0780, 0x04c0, 0x0060, 0x0030
 	.dw	0x0200, 0x0380, 0x03e0, 0x03f0, 0x03c0, 0x0260, 0x0030, 0x0018
 	.dw	0x0100, 0x01c0, 0x01f0, 0x01f8, 0x01e0, 0x0130, 0x0018, 0x000c
-_tgi_put_mouse:
-_tgi_unput_mouse:
+_graf_put_mouse:
+_graf_unput_mouse:
 	;; X y u r Y
 	pshs	x,y,u
 	;; adjust from mouse 512x512 to screen ratio (256x192)
@@ -451,7 +242,7 @@ _tgi_unput_mouse:
 	lsrb			; b = 1y
 	addb	,s+		; add together for 3y
 	std	8,s
-	;; 
+	;;
 	tfr	x,d
 	andb	#7
 	pshs	b		; push modulus 8
@@ -495,69 +286,40 @@ _testfrm:
 	includebin "test.frm"
 
 
-;;; test code down here
-;;; X = X, r Y W
-;;; X  y  r  Y  W
-;;; 01 xx xx 02 10   $80 $1f
-_ll_hline_setup:	
-	pshs	x,y
-	;; figure out screen buffer position
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	d
-	ldb	9,s
-	lda	#32
-	mul
-	addd	,s++
-	addd	#$6000
-	std	smc20+1
-	;; figure first bytes out
-	ldx	8,s		; get width
-*	beq	out@		; no width quit fixme!
-	ldb	1,s		; get low bits of x
-	andb	#7		; bottom 3 bits are pixel  adress
-smc25	ldy	#tab
-	lda	b,y		; a = mask of first bit
-smc26	ldb	#0		; push a zero as mask accumulator
+;;; Draw a bar
+;;; r Y W H
+_graf_bar:
+	jsr	set_xywh
+	jsr	calc
+	ldx	<scrpos
+	stx	smc20+1
+	ldb	<fmask
+smc40	nop
+	stb	smc21+1
+	ldb	<whole
+	stb	smc22+1
+	ldb	<lmask
+smc41	nop
+	stb	smc24+1
+	ldb	<hin+1
 	pshs	b
-smc27
-a@	ora	,s		; apply mask to accumulator
-	sta	,s
-smc30	orcc	#$01		; 
-	rora			; shift mask one bit over
-smc28	bcs	c@
-	leax	-1,x		; decrement width
+a@	bsr	_graf_hline_go
+	dec	,s
 	bne	a@
-	;; we're on a byte boundary now
-	;; figure out how many whole bytes
-c@	leax	-1,x
-b@	puls	b
-	stb	smc21+1		; store it to be ored/anded
-	tfr	x,d		; width
-	lsrb
-	lsrb
-	lsrb			; b is no of whole bytes
-	stb	smc22+1		; store it in counter
-	;; last byte
-last@	tfr	x,d		; get width
-	andb	#7		; how many bits are remaining ?
-smc29	ldy	#tabl
-	ldb	b,y		; 
-	stb	smc24+1		; store mask to be ored/anded
-out@	puls	x,y,pc	
-	
-	
-_ll_hline_go:
-smc20	ldx 	#0		; screen loc
+	puls	a,pc
+
+
+_graf_hline_go:
+	tst	<nodraw
+	bne	out@
+smc20	ldx	#0		; screen loc
 	;; apply first byte
 	lda	,x		; get screen data
 smc21	ora	#0		; apply mask
 	sta	,x+		; save to screen
 	;; apply whole bytes
 smc22	ldb	#0
-	beq 	last@
+	beq	last@
 smc23	lda	#$ff
 a@	sta	,x+
 	decb
@@ -569,4 +331,216 @@ smc24	ora	#0
 	ldd	smc20+1		; increment the screen position
 	addd	#32		; to be ready for next hline call
 	std	smc20+1		;
+out@	rts
+
+;;; Scroll lie veritcally
+;;; ll_scroll_up(int x, int y, int w, int o);
+;;;   r  Y  W  O
+;;;   0  2  4  6
+_graf_scroll_up_set:
+	stx	<xin
+	ldx	2,s
+	stx	<yin
+	ldx	4,s
+	stx	<win
+	jsr	calc
+	ldx	<scrpos
+	stx	smc51+1
+	ldd	6,s
+	leax	d,x
+	stx	smc50+1
+	ldb	<fmask
+	stb	smc52+1
+	comb
+	stb	smc53+1
+	ldb	<whole
+	stb	smc54+1
+	ldb	<lmask
+	stb	smc55+1
+	comb
+	stb	smc56+1
+	ldd	#32
+	std	smc57+1
+	rts
+
+;;; Scroll lie veritcally
+;;; ll_scroll_up(int x, int y, int w, int o);
+;;;   r  Y  W  O
+;;;   0  2  4  6
+_graf_scroll_down_set:
+	stx	<xin
+	ldx	2,s
+	stx	<yin
+	ldx	4,s
+	stx	<win
+	jsr	calc
+	ldx	<scrpos
+	stx	smc50+1
+	ldd	6,s
+	leax	d,x
+	stx	smc51+1
+	ldb	<fmask
+	stb	smc52+1
+	comb
+	stb	smc53+1
+	ldb	<whole
+	stb	smc54+1
+	ldb	<lmask
+	stb	smc55+1
+	comb
+	stb	smc56+1
+	ldd	#-32
+	std	smc57+1
+	rts
+
+
+_graf_scroll_go:
+	pshs	u
+smc50	ldx	#0		; from
+smc51	ldu	#0		; to
+	;; first byte is masked
+smc52	lda	#0		; from mask
+	anda	,x+		; get a byte from src
+	pshs	a
+smc53	lda	#0		; to mask
+	anda	,u		; get masks byte from dest
+	ora	,s+		; or the two together
+	sta	,u+		; and put to dest
+	;; copy whole bytes
+smc54	ldb	#0		; how many
+a@	lda	,x+
+	sta	,u+
+	decb
+	bne	a@
+	;; apply last byte
+smc55	lda	#0		; from mask
+	anda	,x+		; get byte from src
+	pshs	a
+smc56	lda	#0		; to mask
+	anda	,u		; get masks from dest
+	ora	,s+		; put to dest
+	sta	,u
+	;; increment ptrs
+smc57	ldd	#32
+	ldx	smc50+1
+	leax	d,x
+	stx	smc50+1
+	ldx	smc51+1
+	leax	d,x
+	stx	smc51+1
+	puls	u,pc
+
+	section .dp
+xin	.dw	0
+yin	.dw	0
+win	.dw	0
+hin	.dw	0
+west	.dw	0
+east	.dw	256
+north	.dw	0
+south	.dw	192
+scrpos	.dw	0
+fmask	.db	0
+whole	.db	0
+lmask   .db	0
+nodraw	.db	0
+vtop	.db	0	
+	
+x2	.dw	0
+y2	.dw	0
+
+
+	section .text
+
+calc:   clr	<vtop
+	;; Clip the X asis
+	;; calc x prime
+	ldd	<xin
+	addd	<win
+	std	<x2
+	;; clip width
+	ldd	<west
+	cmpd	<xin
+	bcs	a@
+	std	<xin
+a@	ldd	<east
+	cmpd	<x2
+	bcc	b@
+	std	<x2
+	;; recalc width
+b@	ldd	<x2
+	subd	<xin
+	std	<win
+	ble	nd@
+	;; Clip the Y axis
+	;; calc y prime
+	ldd	<yin
+	addd 	<hin
+	std	<y2
+	;; clip height
+	ldd	<north
+	cmpd	<yin
+	bcs	c@
+	subd	<yin	
+	stb	<vtop
+	ldd	<north
+	std	<yin
+c@	ldd	<south
+	cmpd	<y2
+	bcc	d@
+	std	<y2
+	;; recalc height
+d@	ldd	<y2
+	subd	<yin
+	std	<hin
+	ble	nd@
+	bra	e@
+nd@	clr	<nodraw
+	com	<nodraw
+	rts
+e@
+
+	;; calc screen buffer position
+	ldd	<xin
+	lsrb
+	lsrb
+	lsrb
+	tfr	d,x
+	ldb	<yin+1
+	lda	#32
+	mul
+	leax	d,x
+	leax	$6000,x
+	stx	<scrpos
+	;; figure first byte mask
+	ldb	<xin+1
+	andb	#7		; bottom three are pixel address
+	ldx	#tab
+	lda	b,x
+	ldx	<win
+	clr	,-s
+a@	ora	,s
+	sta	,s
+	lsra
+	bcs	c@
+	leax	-1,x
+	bne	a@
+	bra	b@
+	;; we're on a byte boundary now
+c@	leax	-1,x
+b@	puls	b
+	stb	<fmask
+	tfr	x,d
+	lsrb
+	lsrb
+	lsrb
+	stb	<whole
+	;; last byte
+	tfr	x,d
+	andb	#7
+	ldx	#tabl
+	ldb	b,x
+	stb	<lmask
+
+	clr	<nodraw
 	rts

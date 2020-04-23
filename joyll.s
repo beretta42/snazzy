@@ -2,7 +2,6 @@
 ;;;   via normal low-res joystick interface
 	
 	export _poll_joy
-	export debug
 	
 	section .text
 
@@ -31,7 +30,7 @@ _poll_joy:
 read:	;; initialize vars for loop
 	ldd	#$4080
 a@	;; the loop
-debug	orb	#2
+	orb	#2
 	stb	$ff20
 	andb	#~2
 	exg	a,a		; fixme: how much delay is needed?
