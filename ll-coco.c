@@ -130,6 +130,7 @@ void ll_loop() {
 	if (key) {
 	    mouse_hide();
 	    getkey();
+#ifdef DEBUG_CLIP
 	    if (key == 'u')
 		graf_setbuf(pos += 512);
 	    if (key == 'd')
@@ -150,6 +151,7 @@ void ll_loop() {
 		foo += 1;
 		testfoo();
 	    }
+#endif /* DEBUG_CLIP */
 	    send_uevent(UEV_KEY, mx, my);
 	    key = 0;
 	    mouse_show();
