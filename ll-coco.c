@@ -161,7 +161,6 @@ int load(char *name) {
     int ret;
     int fd;
 
-    graf_setbuf(databuffer);
     fd = file_open(name,O_RDONLY);
     ret = file_read(fd, databuffer, 2000);
     file_close(fd);

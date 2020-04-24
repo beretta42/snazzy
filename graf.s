@@ -199,8 +199,10 @@ _graf_char_draw
 	;; ptrs for copying from glyph to screen
 b@	ldy	<scrpos
 	;; tos = find rotation calc duff's
-	ldb	<hleft
+	ldb	<hleft		; see if we shift left (only off west edge)
 	beq	c@
+	tst	<west+1		; only apply if are west boundary isn't zero
+	bne	c@
 	negb
 	addb	#7
 	stb	smc102+1
