@@ -5,12 +5,35 @@
 	export _graf_put_mouse
 	export _graf_unput_mouse
 	export _graf_setclip
-	export _testfrm
+	export _graf_setbuf
 	export _graf_bar
 
 	import _font
 
 	section .text
+
+;;; sets the graphics buffer location
+;;; returns the actualy buffer used
+_graf_setbuf:
+	tfr	x,d
+	ldx	#$ffc6
+	lsra			; a = pia setting
+	pshs	a
+	ldb	#7		; shift it 7 times
+a@	lsra
+	bcs	b@
+	clr	,x
+	bra	c@
+b@	clr	1,x
+c@	leax	2,x
+	decb
+	bne	a@
+	puls	a
+	lsla
+	clrb
+	tfr	d,x
+	rts
+
 
 ;;; sets the clipping rectangle
 ;;; r y w h
@@ -26,8 +49,8 @@ _graf_setclip:
 	std	<south
 
 ;;; sets DP args from C stack
-;;; r r y w h, X has x 
-set_xywh:	
+;;; r r y w h, X has x
+set_xywh:
 	stx	<xin
 	ldx	4,s
 	stx	<yin
@@ -37,7 +60,7 @@ set_xywh:
 	stx	<hin
 	ldx	<xin
 	rts
-	
+
 ;;; clear the screen
 ;;; fixme: should clear to pen color
 _graf_clear
@@ -176,7 +199,15 @@ _graf_char_draw
 	;; ptrs for copying from glyph to screen
 b@	ldy	<scrpos
 	;; tos = find rotation calc duff's
-	ldb	3,s
+	ldb	<hleft
+	beq	c@
+	negb
+	addb	#7
+	stb	smc102+1
+	ldb	#smc102-smc99-2
+	stb	smc99+1
+	bra	a@
+c@	ldb	3,s
 	andb	#7
 	negb
 	addb	#7
@@ -184,13 +215,7 @@ b@	ldy	<scrpos
 	stb	smc99+1
 	;; blit
 a@	lda	,u+
-	bsr	foo@
-	dec	,s		; dec counter
-	bne	a@		; loop if more
-	puls	b
-	;; return
-out@	puls	b,x,y,u,pc	; pull counter, restore
-foo@	clrb
+	clrb
 smc99	bra	end@
 	lsra
 	rorb
@@ -212,78 +237,117 @@ end@	anda	<fmask
 	orb	1,y
 	std	,y
 	leay	32,y
-	rts
+	dec	,s		; dec counter
+	bne	a@		; loop if more
+	puls	b
+	;; return
+out@	puls	b,x,y,u,pc	; pull counter, restore
+	;; if over west edge of boundary, the rotate left
+smc102	bra	end2@
+	lsla
+	lsla
+	lsla
+	lsla
+	lsla
+	lsla
+	lsla
+end2@	bra	end@
 
+mouse_new:
+	.db	%00000000,%11000000
+	.db	%01000000,%11100000
+	.db	%01100000,%11110000
+	.db	%01110000,%11111000
+	.db	%01111000,%11111100
+	.db	%01111100,%11111110
+	.db	%00010000,%01111100
+	.db	%00011000,%00111100
+	.db	%00000000,%00011000
 
-mouse	.dw	0x8000, 0xe000, 0xf800, 0xfc00, 0xf000, 0x9800, 0x0c00, 0x0600
-	.dw	0x0800, 0x0e00, 0x0f80, 0x0fc0, 0x0f00, 0x0980, 0x00c0, 0x0060
-	.dw	0x8000, 0xe000, 0xf800, 0xfc00, 0xf000, 0x9800, 0x0c00, 0x0600
-	.dw	0x4000, 0x7000, 0x7c00, 0x7e00, 0x7800, 0x4c00, 0x0600, 0x0300
-	.dw	0x2000, 0x3800, 0x3e00, 0x3f00, 0x3c00, 0x2600, 0x0300, 0x0180
-	.dw	0x1000, 0x1c00, 0x1f00, 0x1f80, 0x1e00, 0x1300, 0x0180, 0x00c0
-	.dw	0x0800, 0x0e00, 0x0f80, 0x0fc0, 0x0f00, 0x0980, 0x00c0, 0x0060
-	.dw	0x0400, 0x0700, 0x07c0, 0x07e0, 0x0780, 0x04c0, 0x0060, 0x0030
-	.dw	0x0200, 0x0380, 0x03e0, 0x03f0, 0x03c0, 0x0260, 0x0030, 0x0018
-	.dw	0x0100, 0x01c0, 0x01f0, 0x01f8, 0x01e0, 0x0130, 0x0018, 0x000c
+mouse_scrptr:	.dw	0
+mouse_data:	rmb	2*9
+
+	;; c X y u r Y
 _graf_put_mouse:
-_graf_unput_mouse:
-	;; X y u r Y
 	pshs	x,y,u
-	;; adjust from mouse 512x512 to screen ratio (256x192)
-	tfr	x,d		; adjust X
-	lsra
-	rorb
-	tfr	d,x
-	ldd	8,s
-	lsra			; divide by 4 to get 2y
-	rorb
-	lsrb
-	pshs	b		; push 2y
-	lsrb			; b = 1y
-	addb	,s+		; add together for 3y
-	std	8,s
-	;;
-	tfr	x,d
-	andb	#7
-	pshs	b		; push modulus 8
-	tfr	x,d
-	lsrb
-	lsrb
-	lsrb
-	pshs	b		; push row offset
-	ldb	11,s		; get Y
-	lda	#32
-	mul
-	addb	,s+		; add offset
-	adca	#0		; 16-bitify add
-	addd	#$6000		; add screen base
-	tfr	d,x		; X = screen bytes
-	ldb	,s+		; pull modulus (bit shifts)
-	lda	#16
-	mul
-	addd	#mouse
-	tfr	d,y
-	ldb	#4
+	stx	<xin
+	ldx	8,s
+	stx	<yin
+	ldx	#8
+	stx	<win
+	ldx	#9
+	stx	<hin
+	jsr	calc
+	bcs	out@
+	;; get new height push as counter
+	ldb	<hin+1
 	pshs	b
-	;; begin loop
-a@
-	ldd	,y++		; get first row
-	eora	,x		; xor to screen data
-	eorb	1,x		;
-	std	,x		; and save back to screen
-	leax	32,x		; next row
-	ldd	,y++		; get first row
-	eora	,x		; xor to screen data
-	eorb	1,x		;
-	std	,x		; and save back to screen
-	leax	32,x		; next row
-	;; loop inc
+	;; set undraw's height
+	stb	smc101+1
+	;; setup loop vars
+	ldx	#mouse_data
+	ldu	#mouse_new
+	ldy	<scrpos
+	sty	mouse_scrptr
+	;; find shift for duff's rotate
+	ldb	2,s
+	andb	#7
+	negb
+	addb	#7
+	lslb
+	stb	smc100+1
+a@	lda	,u+
+	bsr	foo
+	pshs	d
+	lda	,u+
+	bsr	foo
+	coma
+	comb
+	pshs	d
+	ldd	,y
+	std	,x++
+	anda	,s+
+	andb	,s+
+	ora	,s+
+	orb	,s+
+	std	,y
+	leay	32,y
 	dec	,s
 	bne	a@
-	puls	b,x,y,u,pc	; pull counter, retore, return
+	puls	b
+out@	puls	x,y,u,pc
+foo	clrb
+smc100	bra	end@
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	anda	<fmask
+	andb	<lmask
+end@	rts
 
-_testfrm:
-	includebin "test.frm"
+_graf_unput_mouse:
+	pshs	u
+	ldu	#mouse_data
+	ldx	mouse_scrptr
+smc101	ldb	#9
+	pshs	b
+a@	ldd	,u++
+	std	,x
+	leax	32,x
+	dec	,s
+	bne	a@
+end@	puls	b,u,pc
 
 
 ;;; Draw a bar
@@ -333,6 +397,7 @@ smc24	ora	#0
 	std	smc20+1		;
 out@	rts
 
+	ifdef	0
 ;;; Scroll lie veritcally
 ;;; ll_scroll_up(int x, int y, int w, int o);
 ;;;   r  Y  W  O
@@ -430,6 +495,8 @@ smc57	ldd	#32
 	stx	smc51+1
 	puls	u,pc
 
+	endc
+
 	section .dp
 xin	.dw	0
 yin	.dw	0
@@ -444,8 +511,9 @@ fmask	.db	0
 whole	.db	0
 lmask   .db	0
 nodraw	.db	0
-vtop	.db	0	
-	
+vtop	.db	0
+hleft	.db	0
+
 x2	.dw	0
 y2	.dw	0
 
@@ -453,6 +521,7 @@ y2	.dw	0
 	section .text
 
 calc:   clr	<vtop
+	clr	<hleft
 	;; Clip the X asis
 	;; calc x prime
 	ldd	<xin
@@ -461,11 +530,14 @@ calc:   clr	<vtop
 	;; clip width
 	ldd	<west
 	cmpd	<xin
-	bcs	a@
+	ble	a@
+	subd	<xin
+	stb	<hleft
+	ldd	<west
 	std	<xin
 a@	ldd	<east
 	cmpd	<x2
-	bcc	b@
+	bgt	b@		; fixme: s/b bge ?
 	std	<x2
 	;; recalc width
 b@	ldd	<x2
@@ -475,19 +547,19 @@ b@	ldd	<x2
 	;; Clip the Y axis
 	;; calc y prime
 	ldd	<yin
-	addd 	<hin
+	addd	<hin
 	std	<y2
 	;; clip height
 	ldd	<north
 	cmpd	<yin
-	bcs	c@
-	subd	<yin	
+	ble	c@
+	subd	<yin
 	stb	<vtop
 	ldd	<north
 	std	<yin
 c@	ldd	<south
 	cmpd	<y2
-	bcc	d@
+	bgt	d@		; fixme s/b bge?
 	std	<y2
 	;; recalc height
 d@	ldd	<y2

@@ -10,7 +10,9 @@
    Widgets
 *****************/
 
+#include "stdint.h"
 #include "snazzy.h"
+#include "string.h"
 #include "ll.h"   // fixme: remove
 
 uint8_t databuffer[8192];
@@ -37,10 +39,17 @@ int time;
 int dtime = 500;
 
 
+int szy_init(void) {
+    ll_init();
+    ll_setclip(0,0,256,192);
+    ll_puts(128-(4*3), 96-3, "Snazzy");
+    // fixme: focus = compiled default *//
+    // draw_all(focus);
+}
+
+
 int szy_strlen(char *p) {
-    int a = 0;
-    while(*p++) a++;
-    return a;
+    return strlen(p);
 }
 
 int szy_strcmp(char *s1, char *s2) {
@@ -100,8 +109,11 @@ void pull_focus(void) {
     focus->flags |= FL_NOCHILD;
     bound(focus);
     ll_draw_back(bx1-1, by1-1, bw+2, bh+2);
+    //ll_draw_back(bx1, by1, bw, bh);
     focus = wstack[--wstack_ptr];
-    draw_coll(focus);
+    ll_setclip(bx1-1, by1-1, bw+2, bh+2);
+    draw_all(focus);
+    ll_setclip(0,0,256,192);
     lmove = NULL;
     down = NULL;
     mwidget = NULL;
@@ -171,22 +183,6 @@ void bound(widget *w) {
     bh = by2 - by1;
 }
 
-
-void draw_coll(widget *w) {
-    widget *n;
-    if (w->flags & FL_NODRAW) return;
-    if ( w->x > bx2 ||
-	 w->y > by2 ||
-	 w->x + w->w < bx1 ||
-	 w->y + w->h < by1 )
-	return;
-    drawf = 1;
-    do_event(w, EV_DRAW);
-    if (w->flags & FL_NOCHILD) return;
-    for (n = gp(w->child); n; n = gp(n->next)) {
-	draw_coll(n);
-    }
-}
 
 void draw_children(widget *w) {
     widget *n;

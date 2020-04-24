@@ -6,5 +6,6 @@ void _graf_setpixel(int x, int y);
 void _graf_cset(int color);
 void _graf_char_draw(int x, int y, char *glyph);
 void _graf_put_mouse(int x, int y);
-void _graf_unput_mouse(int x, int y);
+void _graf_unput_mouse();
 void _graf_bar(int x, int y, int w, int h);
+char *_graf_setbuf(char *p);

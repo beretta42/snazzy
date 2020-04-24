@@ -3,10 +3,13 @@
 Low level graphics routines for coco 2
 
 */
+#include "stdint.h"
+#include "file.h"
 #include "coco.h"
 #include "snazzy.h"
 #include "ll.h"
 #include "graf.h"
+#include "string.h"
 
 int mx, my;
 
@@ -17,13 +20,7 @@ int ll_init(void) {
     *(unsigned char *)0xffc3 = 0x00;
     *(unsigned char *)0xffc5 = 0x00;
     /* screen ram address to 0x6000 */
-    *(unsigned char *)0xffc6 = 0x00;
-    *(unsigned char *)0xffc8 = 0x00;
-    *(unsigned char *)0xffca = 0x00;
-    *(unsigned char *)0xffcc = 0x00;
-    *(unsigned char *)0xffcf = 0x00;
-    *(unsigned char *)0xffd1 = 0x00;
-    *(unsigned char *)0xffd2 = 0x00;
+    graf_setbuf((char *)0x6000);
     graf_cset(0);
     graf_clear();
     mouse_show();
@@ -94,11 +91,24 @@ void ll_draw_back(int x, int y, int w, int h) {
     graf_cset(1);
 }
 
+char *pos = (char *)0x6000;
+int foo = 5;
+int bar = 5;
+
+
+void testfoo(void) {
+    graf_cset(0);
+    graf_bar(foo-1, bar-1, 9, 9);
+    graf_cset(1);
+    graf_char_draw(foo, bar, font+(30*6));
+}
+
+
 
 void ll_loop() {
     while(1) {
-	int mx = mouse_x/2;
-	int my = mouse_y*3/8;
+	int mx = mouse_x;
+	int my = mouse_y;
 	/* send movement events */
 	if (mwidget && mouse_mf) {
 	    mouse_hide();
@@ -118,31 +128,46 @@ void ll_loop() {
 	}
 	/* send keyboard events */
 	if (key) {
+	    mouse_hide();
 	    getkey();
+	    if (key == 'u')
+		graf_setbuf(pos += 512);
+	    if (key == 'd')
+		graf_setbuf(pos -= 512);
+	    if (key == 'e') {
+		bar +=1;
+		testfoo();
+	    }
+	    if (key == 'w') {
+		bar -= 1;
+		testfoo();
+	    }
+	    if (key == 'a') {
+		foo -= 1;
+		testfoo();
+	    }
+	    if (key == 's') {
+		foo += 1;
+		testfoo();
+	    }
 	    send_uevent(UEV_KEY, mx, my);
 	    key = 0;
+	    mouse_show();
 	}
     }
 }
 
-void *memcpy(void *dest, void *src, int n) {
-    char *d = dest;
-    char *s = src;
-    while(n--)
-	*d++ = *s++;
-    return dest;
-};
-
-extern widget testfrm[];
 int load(char *name) {
-    int fd;
     int ret;
-    int t;
-    //fd = open(name,O_RDONLY);
-    //ret = read(fd,databuffer, 8192);
-    //close(fd);
-    memcpy(databuffer, testfrm, 2000);
+    int fd;
+
+    graf_setbuf(databuffer);
+    fd = file_open(name,O_RDONLY);
+    ret = file_read(fd, databuffer, 2000);
+    file_close(fd);
+    graf_clear();
     focus = (widget *)(databuffer + 2);
+    draw_all(focus);
 }
 
 

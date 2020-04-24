@@ -1,11 +1,11 @@
 all: snazzy.a test
 CC = m6809-unknown-gcc
-CFLAGS = -Os -DBARE
+CFLAGS = -Os -DBARE -fno-builtin
 AR = m6809-unknown-ar
 LD = m6809-unknown-ld
 AS = m6809-unknown-as
 SRC = snazzy.c label.c button.c ll-coco.c font.c poplist.c hslide.c panel.c
-SRC += menu.c window.c text.c joy.c keyboard.c
+SRC += menu.c window.c text.c joy.c keyboard.c file.c
 OBJ = $(SRC:.c=.o)
 
 $(OBJ): $(SRC)
@@ -13,7 +13,8 @@ $(OBJ): $(SRC)
 snazzy.a: $(OBJ) snazzy.h ll.h test.frm
 	$(AS) -o joyll.o joyll.s
 	$(AS) -o graf.o graf.s
-	$(AR) -rc snazzy.a $(OBJ) joyll.o graf.o
+	$(AS) -o file_ll.o file_ll.s
+	$(AR) -rc snazzy.a $(OBJ) joyll.o graf.o file_ll.o
 	rm -f $(OBJ)
 
 test: snazzy.a test-coco.c crt0.s graf.s joyll.s joy.c
@@ -27,6 +28,7 @@ test.dsk: test.bin
 	decb2 label test.dsk "SNAZZY GUI"
 	decb2 put -l0a test.dsk autoexec.bas AUTOEXEC.BAS
 	decb2 put -2b test.dsk test.bin TEST.BIN
+	decb2 put -1a test.dsk test.frm TEST.FRM
 
 
 test.frm: guipe/guipe guipe/test.rc

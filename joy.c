@@ -27,14 +27,14 @@ void do_joy(void) {
     int x1 = 0;
     int y1 = 0;
     uint8_t nb;
-    x1 = poll_joy(0);
-    y1 = poll_joy(1);
+    x1 = poll_joy(0)/2;
+    y1 = poll_joy(1)*3/8;
     if ((x1 != mouse_x) || (y1 != mouse_y)) {
 	mouse_mf = 1;
     }
     if (hidden == 0) {
 	if ((x1 != mouse_x) || (y1 != mouse_y)){
-	    graf_unput_mouse(mouse_x,mouse_y);
+	    graf_unput_mouse();
 	    graf_put_mouse(x1,y1);
 	}
     }
@@ -60,7 +60,7 @@ void mouse_show(void) {
 void mouse_hide(void) {
     di();
     if (hidden == 0){
-	graf_unput_mouse(mouse_x, mouse_y);
+	graf_unput_mouse();
 	hidden = 1;
     }
     ei();

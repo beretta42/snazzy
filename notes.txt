@@ -13,6 +13,7 @@ TODO:
    cursor mangles screen on init draw
    mwidget is really just a flag - not a pointer.
    conditionaly compile endian swizzle.
+   coco: char draw - need cset(0) black putting!
 
 
 ****************************************

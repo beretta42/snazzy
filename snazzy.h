@@ -128,6 +128,7 @@ widget *child_by_index(widget *w, int i);
 void szy_exit(int r);
 int szy_strlen(char *p);
 int szy_strcmp(char *s1, char *s2);
+int szy_init(void);
 
 /* widget event handlers */
 void do_label(widget *w, int ev);

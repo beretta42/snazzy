@@ -1,6 +1,7 @@
 #include "coco.h"
 #include "snazzy.h"
 #include "ll.h"
+#include "file.h"
 
 extern widget *testfrm;
 static widget *panel;
@@ -24,14 +25,12 @@ void do_text1(widget *w, int ev) {
 
 void main(void) {
     int i;
-    ll_init();
-    load("test.frm");
+    szy_init();
+    load("TEST.FRM");
     reg_appcall("example", do_example);
     reg_appcall("quit", do_quit);
     reg_appcall("text1", do_text1);
     panel = find_widget("ren");
-    ll_setclip(0,0,256,192);
-    draw_all(focus);
     ll_loop();
     while(1);
 }

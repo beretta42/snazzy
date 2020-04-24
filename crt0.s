@@ -6,6 +6,10 @@
 	export _mulhi3
 	export _udivhi3
 	export _enable_poll
+	export _memset
+	export _strlen
+	export _memcpy
+	export _index
 	export _exit
 	export _timer
 	import _main
@@ -65,6 +69,54 @@ _di:
 _ei:
         andcc   #~$50           ; start interrupts
         rts
+
+	;; set memory to a byte
+_memset:
+	pshs	y
+	ldy	4,s
+a@	stb	,x+
+	leay	-1,y
+	bne	a@
+	puls	y,pc
+
+	;; how long is a string
+_strlen:
+	pshs	x
+a@	lda	,x+
+	bne	a@
+	leax	-1,x
+	tfr	x,d
+	subd	,s++
+	tfr	d,x
+	rts
+
+	;; copy memory
+	;; y u r s len
+_memcpy:
+	pshs	y,u
+	ldu	6,s
+	ldy	8,s
+	beq	out@
+a@	lda	,u+
+	sta	,x+
+	leay	-1,y
+	bne	a@
+out@	puls	y,u,pc
+
+	;; find char in memory
+_index:
+	pshs	b
+a@	ldb	,x+
+	cmpb	,s
+	beq	o@
+	tstb
+	bne	a@
+	ldx	#0
+	puls	b,pc
+o@	leax	-1,x
+	puls	b,pc
+	
+
 
 _ashrhi3:
         pshs    x
