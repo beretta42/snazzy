@@ -10,6 +10,10 @@
 
 	import _font
 
+	section .data
+scrbas	.dw	0
+scrend	.dw	0
+
 	section .text
 
 ;;; sets the graphics buffer location
@@ -32,6 +36,9 @@ c@	leax	2,x
 	lsla
 	clrb
 	tfr	d,x
+	std	scrbas
+	addd	#32*192
+	std	scrend
 	rts
 
 
@@ -67,7 +74,7 @@ set_xywh:
 _graf_clear
 	ldb	#128
 	pshs	b,y,u
-	ldu	#$6000+(32*192)
+	ldu	scrend
 	ldd	#0		; fixme: self modify from cset here
 	ldy	#0
 	ldx	#0
@@ -100,7 +107,7 @@ smc1	ldy	#tab
 	lda	#32
 	mul
 	addd	,s++
-	addd	#$6000
+	addd	scrbas
 	tfr	d,x
 	ldb	,x
 smc2	orb	,y
@@ -584,8 +591,8 @@ e@
 	ldb	<yin+1
 	lda	#32
 	mul
+	addd	scrbas
 	leax	d,x
-	leax	$6000,x
 	stx	<scrpos
 	;; figure first byte mask
 	ldb	<xin+1
