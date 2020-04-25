@@ -47,6 +47,7 @@ _graf_setclip:
 	std	<north
 	addd	<hin
 	std	<south
+	rts
 
 ;;; sets DP args from C stack
 ;;; r r y w h, X has x

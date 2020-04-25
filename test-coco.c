@@ -23,6 +23,13 @@ void do_text1(widget *w, int ev) {
     }
 }
 
+void do_save(widget *w, int ev) {
+    if (ev == AEV_SELECT) {
+	graf_clear();
+	draw_all(focus);
+    }
+}
+
 void main(void) {
     int i;
     szy_init();
@@ -30,6 +37,7 @@ void main(void) {
     reg_appcall("example", do_example);
     reg_appcall("quit", do_quit);
     reg_appcall("text1", do_text1);
+    reg_appcall("save", do_save);
     panel = find_widget("ren");
     ll_loop();
     while(1);

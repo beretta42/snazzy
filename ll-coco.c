@@ -95,7 +95,7 @@ char *pos = (char *)0x6000;
 int foo = 5;
 int bar = 5;
 
-
+/* for clipping testing, fixme: delete */
 void testfoo(void) {
     graf_cset(0);
     graf_bar(foo-1, bar-1, 9, 9);
@@ -130,7 +130,7 @@ void ll_loop() {
 	if (key) {
 	    mouse_hide();
 	    getkey();
-#ifdef DEBUG_CLIP
+#ifdef DEBUG
 	    if (key == 'u')
 		graf_setbuf(pos += 512);
 	    if (key == 'd')
@@ -151,7 +151,7 @@ void ll_loop() {
 		foo += 1;
 		testfoo();
 	    }
-#endif /* DEBUG_CLIP */
+#endif /* DEBUG */
 	    send_uevent(UEV_KEY, mx, my);
 	    key = 0;
 	    mouse_show();
