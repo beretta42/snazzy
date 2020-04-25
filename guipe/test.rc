@@ -29,7 +29,7 @@ height 192
    }
    
    panel ren max {
-        vbox {
+        vbox ctext "pan1" {
 	    hbox { label "one" maxw label "two" maxw label "three" maxw }
             hbox { label "four" label "five" label "six" maxw right }
             vbox {

@@ -34,7 +34,7 @@ enum {
 
 /*This an internal compile-time widget structure,
   not the one used at run-time.
- */ 
+ */
 struct widget_s {
     int type;
     int x;
@@ -115,7 +115,7 @@ int isws(char c) {
 	return 1;
     default:
 	return 0;
-    }    
+    }
 }
 
 int isquote(char c) {
@@ -148,7 +148,7 @@ void getquote(char c) {
     char n;
     while (1) {
 	n = getin();
-	if (n == c) break; 
+	if (n == c) break;
 	*d++ = n;
     }
     *d = 0;
@@ -185,7 +185,7 @@ int getnumber(void) {
 char *getstr(void) {
     return strdup(word());
 }
-    
+
 void do_comment() {
     while (getin() != '\n');
 }
@@ -243,7 +243,7 @@ void vset_vbox(widget *w, int height) {
     int h = w->vused;
     int e;
 
-    if (m) { 
+    if (m) {
 	e = (height - h) / m;
 	for (n = w->child; n; n = n->next) {
 	    if (n->h) continue;
@@ -324,7 +324,7 @@ void do_vbox() {
 }
 
 
-/* 
+/*
    Horitonal Box Layout
 */
 
@@ -415,8 +415,8 @@ void do_hbox() {
 
 
 
-/* 
-   Label Widget 
+/*
+   Label Widget
 
 */
 
@@ -459,7 +459,7 @@ void do_label() {
 }
 
 /*
-   Button Widget 
+   Button Widget
 */
 
 void vsize_button(widget *w) {
@@ -501,7 +501,7 @@ void do_button() {
 }
 
 
-/* 
+/*
    Pop-Up List widget
 
 */
@@ -670,7 +670,7 @@ void do_panel() {
     cur->ctext = getstr();
 }
 
-/* 
+/*
    menu widget */
 
 
@@ -753,7 +753,7 @@ void vpos_text(widget *w, int x, int y) {
     w->y = y;
 }
 
-    
+
 void do_text() {
     new_widget();
     cur->type = TEXT;
@@ -768,7 +768,7 @@ void do_text() {
 }
 
 
-/*    ui tie-ins 
+/*    ui tie-ins
 
 
 */
@@ -821,7 +821,7 @@ void do_left() {
 void do_right() {
     cur->flags |= HRIGHT;
 }
- 
+
 void do_top() {
     cur->flags |= VTOP;
 }
@@ -836,6 +836,10 @@ void do_valmax() {
 
 void do_value() {
     cur->d = getnumber();
+}
+
+void do_ctext() {
+    cur->ctext = getstr();
 }
 
 typedef struct {
@@ -872,6 +876,7 @@ command_t cmds[] = {
     { "menuitem",    do_menuitem },
     { "window",      do_window },
     { "text",        do_text },
+    { "ctext",       do_ctext },
     { NULL, NULL },
 };
 
@@ -898,7 +903,7 @@ void hprint_widget(widget *w) {
     // type
     printf("%d, ", w->type);
     // user ev
-    //printf("do_%s, ", w->ctext); 
+    //printf("do_%s, ", w->ctext);
     // next
     if (w->next) {
 	printf("&%s, ", w->next->ctext);
@@ -1029,7 +1034,7 @@ int main( int argc, char *argv[]) {
     while (1) {
 	word();
 	found = 0;
-       	if (*wordb == 0) break;
+	if (*wordb == 0) break;
 	if (*wordb == '#') { do_comment(); continue;}
 	for (x = 0; cmds[x].txt; x++) {
 	    if (!strcmp(wordb, cmds[x].txt)) {
@@ -1038,7 +1043,7 @@ int main( int argc, char *argv[]) {
 		break;
 	    }
 	}
-	if (!found) 
+	if (!found)
 	fprintf(stderr, "unknown op >%s<\n", wordb);
     }
     head->vsize(head);
