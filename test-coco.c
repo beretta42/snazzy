@@ -3,6 +3,9 @@
 #include "ll.h"
 #include "file.h"
 
+
+void tobasic(void);
+
 extern widget *testfrm;
 static widget *panel;
 static char buf1[32] = "GUIs are fun";
@@ -30,6 +33,29 @@ void do_save(widget *w, int ev) {
     }
 }
 
+void display(void) {
+    char *p = (char *)0x400;
+    int x,y;
+
+    for (y = 50; y<50+32; y += 2) {
+	for (x = 50; x<50+32; x++) {
+	    if (*p++ == 0x60) {
+		graf_setpixel(x,y);
+		graf_setpixel(x,y+1);
+	    }
+	}
+    }
+}
+
+void do_thumb(widget *w, int ev) {
+    display();
+
+}
+
+void do_basic(widget *w, int ev) {
+    tobasic();
+}
+
 void main(void) {
     int i;
     szy_init();
@@ -38,6 +64,8 @@ void main(void) {
     reg_appcall("quit", do_quit);
     reg_appcall("text1", do_text1);
     reg_appcall("save", do_save);
+    reg_appcall("thumb", do_thumb);
+    reg_appcall("basic", do_basic);
     panel = find_widget("ren");
     ll_loop();
     while(1);
