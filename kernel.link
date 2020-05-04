@@ -1,9 +1,9 @@
-section .dp   load 0e00
+section .bounce high 8000
+section .dp   load 8000
 section .text
 section .text.startup
 section .data
 section .bss
-section .bounce
 entry start
 
 define basesympat %s_base

@@ -3,100 +3,118 @@
 	export  _write_ll
 	export	_close_ll
 
+	import	bihandle
+	import	interrupt
+	import  bsc_stack
+
 	section .data
+
+
+	section .bounce
+bounce:
+	;; flip BASIC into memory
+	pshs	cc,d,dp,x,y,u
+	orcc	#$50
+	sts	kssav
+	ifdef	KERNEL
+	lds	bsc_stack
+	endc
+	sts	save
+	pshs	d,x,y		; y is a dummy
+	clr	rval
+	clra
+	tfr	a,dp
+	ifdef	KERNEL
+	ldx	bihandle
+	stx	$fef8
+	ldx	#$ffa4
+	ldd	#$3c3d
+	std	,x++
+	ldd	#$3e3f
+	std	,x
+	endc ; KERNEL
+	ldd	$192
+	std	serr
+	ldd	#bad
+	std	$192
+	ldd	#ret
+	std	4,s
+	puls	d,x
+	andcc	#~$10
+	jsr	[vect]		; A = read return
+ret	sta	aval
+	lds	save
+	ifdef KERNEL
+	orcc	#$50
+	ldx	#$ffa4
+	ldd	#$0001
+	std	,x++
+	ldd	#$0203
+	std	,x
+	ldx	#interrupt
+	stx	$fef8
+	endc ; KERNEL
+	ldx	serr
+	stx	$192
+	lds	kssav
+	lda	aval
+	sta	1,s
+	puls	cc,d,dp,x,y,u,pc
+bad	com	rval
+	bra	ret
+kssav	rmb	2
 save	rmb	2
+vect	rmb	2
+rval	rmb	1
+serr	rmb	2
+aval	rmb	1
 
 	section .text
 
 DEVNUM	equ	$6f
 
+
 	;; open a decb file
 	;; b = BASIC open mode, 'I' or 'O'
 _open_ll:
-	pshs	dp,y,u		; save abused regs
-	clra			; set DP to BASIC's
-	tfr	a,dp
-	sts	save		; save stack for error rewinding
-	ldy	#open_err	; usurp BASIC error vector
-	sty	$192
 	tfr	b,a		; BASIC want mode in a, and b = devnum
 	ldb	DEVNUM
-	;; fixme: this DECB vectors should be grokked from the BASIC
-	;; RAM vectors in DP. Don't assume decb1.1 locations!
-	jsr	$c48d		; call 1.1 DECB's open
-open_ok:
-	ldx	#0
-	puls	dp,y,u,pc
-open_err:
-	lds	save		; reload stack
-	ldx	#-1		; return NULL
-	puls	dp,y,u,pc
+	ldx	#$c48d		; fixme: may not be DECB1.1 !
+tail	stx	vect
+	jsr	bounce
+	ldb	rval
+	sex			; wheee!
+	tfr	d,x
+	rts
 
 	;; read byte from file
 _read_ll:
-	pshs	dp
-	clra
-	tfr	a,dp
-	sts	save
-	ldx	#read_err
-	stx	$192
-	ldx	#read_ok
-	pshs	x
-	jsr	$16a		; A = byte read
-read_ok:
-	tst	<$70		; read BASIC's EOF flag
+	ldx	#$16a
+	stx	vect
+	jsr	bounce
+	tst	rval
+	bne	read_err
+	tst	$70		; read BASIC's EOF flag
 	bne	read_eof
 	tfr	a,b
 	clra
 	tfr	d,x
-	puls	dp,pc
+	rts
 read_err:
-	lds	save
 	ldx	#-2
-	puls	dp,pc
+	rts
 read_eof:
 	ldx	#-1
-	puls	dp,pc
+	rts
 
 	;; write byte to file
 	;;  b = char
 _write_ll:
-	pshs	dp
-	clra
-	tfr	a,dp
-	sts	save
-	ldx	#write_err
-	stx	$192
-	ldx	#write_ok
-	pshs	x
 	tfr	b,a
-	jsr	$167
-write_ok:
-	ldx	#0
-	puls	dp,pc
-write_err:
-	lds	save
-	ldx	#-1
-	puls	dp,pc
+	ldx	#$167
+	bra	tail
 
 
-	;; x = fd
 _close_ll:
-	pshs	dp,y,u
-	clra
-	tfr	a,dp
-	sts	save		; remember stack frame
-	tfr	x,d
-	stb	DEVNUM
-	ldx	#close_err	; usurp any BASIC errors
-	stx	$192
-	ldx	#close_ok
-	pshs	x		; push return address twice BASIC will gobble it
-	jsr	$176		; call BASIC close ram hook
-close_ok:
-	ldx	#0		; closed ok!
-	puls	dp,y,u,pc
-close_err:
-	lds	save		; reset stack frame
-	ldx	#-1		; closed bad!
-	puls	dp,y,u,pc
+	ldx	#$176
+	bra	tail
