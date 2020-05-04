@@ -4,4 +4,4 @@ guipe: guipe.c
 
 
 clean:
-	rm -f guipe *.o *~
+	rm -f guipe *.o *~ test.frm

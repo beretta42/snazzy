@@ -47,6 +47,7 @@ guipe/guipe:  guipe/guipe.c
 	$(MAKE) -C guipe all
 
 clean:
+	$(MAKE) -C guipe clean
 	rm -f *.o snazzy *~ test.h test.frm test snazzy.a kernel.bin test.map \
-	test.dsk boot.bin
+	test.dsk boot.bin boot.map kernel.map
 	$(MAKE) -C guipe clean
