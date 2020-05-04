@@ -21,7 +21,7 @@ static int mouse_o;
 volatile int mouse_f;
 volatile int mouse_mf;
 
-static int hidden = 0;
+static int hidden = 1;
 
 void do_joy(void) {
     int x1 = 0;
