@@ -13,6 +13,8 @@ void ll_puts(int x, int y, char *t);
 void ll_putn(int x, int y, char *t, int max);
 void ll_draw_back(int x, int y, int w, int h);
 void ll_loop(void);
+void ll_blit(int x, int y, unsigned char *bm);
+void ll_roundrect(int x, int y, int w, int h, unsigned char *s, int r);
 
 volatile extern int mouse_x;
 volatile extern int mouse_y;

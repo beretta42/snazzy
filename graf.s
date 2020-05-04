@@ -7,8 +7,12 @@
 	export _graf_setclip
 	export _graf_setbuf
 	export _graf_bar
+	export _graf_blit
+	export _graf_stiple
 
 	import _font
+
+
 
 	section .data
 scrbas	.dw	0
@@ -56,6 +60,19 @@ _graf_setclip:
 	std	<south
 	rts
 
+
+;;; sets the drawing mode
+;;;  fixme: only mods graf_bar
+_graf_draw_mode:
+	tstb
+	beq	set@
+	cmpb	#1
+	beq	xor@
+	rts
+set@:	rts
+xor@:
+	rts
+
 ;;; sets DP args from C stack
 ;;; r r y w h, X has x
 set_xywh:
@@ -68,6 +85,170 @@ set_xywh:
 	stx	<hin
 	ldx	<xin
 	rts
+
+
+;;; blit a bitmap to screen, pixel-perfect, clipped
+;;;
+;;;  formula:
+;;;  scr = (((scr & mask) | data) & fmask)   |   (scr & fmaski)
+;;;     scr = byte in screen buffer
+;;;     mask = rotated pixel mask from bitmap
+;;;     data = rotated pixel data from bitmap
+;;;     fmask = precalculated by calc(): first byte's pixel mask
+;;;     fmaski = inverse of fmask: first bytes background mask
+_graf_blit:
+	pshs	y,u
+	tfr	x,d
+	;; setup the rotator routine
+	andb	#7		; get bit offset
+	subb	#7		; flip it
+	negb			;
+	lslb			; 2x (each shift is a lsra, rorb)
+	stb	smc304+1	; modify rotator routine
+	;; calc bytes per line of bitmap
+	ldu	8,s		; ldu ptr to start of bitmap data
+	ldd	,u		; get bitmap's width
+	addb	#7		; round up
+	lsrb			; divide by 8 but
+	lsrb			; multiply by 2 bytes per byte of screen
+	andb	#~$1		; masks and pixel
+	stb	<temp3		; save it for later
+	stb	smc303+2	; modify the loop increment
+	;; setup calcuator
+	stx	<xin		; save the x
+	ldx	6,s		; save the y
+	stx	<yin
+	ldd	,u++		; save the w
+	std	<win
+	ldd	,u++
+	std	<hin		; save the h
+	jsr	calc		; run calculator
+	tst	nodraw		; totally out of bounds?
+	lbne	out@
+	ldy	<scrpos		; Y is our screen ptr
+	;; calculate bitmap starting address
+	ldb	<hleft		; take no of pixels we're behind the screen
+	lsrb			; divide by 8 but
+	lsrb			; multiply by 2 to get bitmap data
+	andb	#~$1		; (pixel + mask)
+	leau	b,u		; adjust ptr to point at first
+	ldb	<vtop		; now work on vertical offset
+	lda	<temp3		; get BPL from above
+	mul			; multiply for more offset into bitmap data
+	leau	d,u		; adjust ptr again
+	;; adjust if bitmap is in middle of west clip bounary
+	lda	#$20		; BRA opcode
+	ldb	<hleft		; tricky here: if we are behind
+	andb	#7		; the left boundary then
+	pshs	b		; we have to preload the rotator
+	ldb	<west+1		; to simulate shifting LEFT
+	andb	#7		; so compare boundary's bit offset to hleft
+	cmpb	,s+		; if bigger then don't preload the masks
+	bhs	e@
+	lda	#$21		; BRN opcode
+e@	sta	smc305		; and modify the first byte loading
+	;; calc screen pos loop increment 32-(whole+2)
+c@	ldb	<whole		; number of whole bytes
+	incb			; plus 2
+	incb
+	negb			; subtract from 32
+	addb	#32
+	stb	smc302+2        ; adjust loop incrementer
+	ldb	<hin+1		; grab cliped height - its line counter
+	pshs	b
+	;; get and apply first byte with extra mask
+b@	pshs	u
+	clr	<temp1		; clear rotator preloads
+	clr	<temp2
+smc305	bra	d@
+	lda	,u+		; yes, preload
+	lbsr	shiftd
+	stb	<temp1
+	lda	,u+
+	lbsr	shiftd
+	stb	<temp2
+d@	lda	,y		; scr
+	anda	<fmaski		; | fmaski
+	pshs	a		; s: back
+	lda	,u+
+	bsr	shiftd
+	ora	<temp1
+	stb	<temp1		; A is mask
+	anda	,y		; scr & mask
+	pshs	a		; s:  scr&mask back
+	lda	,u+		; A is pixel data
+	bsr	shiftd
+	ora	<temp2
+	stb	<temp2
+	ora	,s+		; | data
+	anda	fmask		; & fmask
+	ora	,s+		; | (scr & fmaski)
+	sta	,y+
+	;; apply whole bytes
+	;;  speed up formula here no masking needed:
+	;;  scr = (scr & mask) | data)
+smc301	ldb	<whole		; push row counter
+	beq	last@
+	pshs	b
+a@	lda	,u+
+	bsr	shiftd
+	ora	<temp1
+	stb	<temp1
+	anda	,y
+	pshs	a		; s: (scr & mask)
+	lda	,u+
+	bsr	shiftd
+	ora	<temp2		; a = data
+	stb	<temp2
+	ora	,s+		; data | (scr & mask)
+	sta	,y+
+	dec	,s
+	bne	a@
+	puls	b
+	;; apply last byte
+last@	lda	,y
+	anda	<lmaski
+	pshs	a		; s: (scr & lmaski)
+	lda	,u+
+	bsr	shiftd
+	ora	<temp1		; a = mask
+	anda	,y		; & scr
+	pshs	a		; s: (scr & mask) (screen & lmaski)
+	lda	,u+
+	bsr	shiftd
+	ora	<temp2		; a = data
+	ora	,s+		; | (scr & mask)
+	anda	<lmask
+	ora	,s+
+	sta	,y+
+	;; inc loop vars
+smc302	leay	32-3,y
+	puls	u
+smc303	leau	32,u		; skip some bytes in bitmap to get to next row
+	dec	,s
+	lbne	b@
+	puls	b
+out@	puls	y,u,pc
+	;; fxixme me: share load by left shifting too?
+shiftd  clrb
+smc304	bra	end@
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+	lsra
+	rorb
+end@	rts
+
+
 
 ;;; clear the screen
 ;;; fixme: should clear to pen color
@@ -182,7 +363,6 @@ tabl:
 
 
 ;;; put a char on screen
-;;;  fixme: cliping for X axis
 ;;;   b X y, u, r Y PTR
 _graf_char_draw
 	pshs	b,x,y,u
@@ -383,13 +563,48 @@ a@	bsr	_graf_hline_go
 	puls	a,pc
 
 
+	;;  u r Y W H P
+_graf_stiple:
+	jsr	set_xywh
+	jsr	calc
+	pshs	u
+	ldu	10,s
+	ldx	<scrpos
+	stx	smc20+1
+	ldb	<whole
+	stb	smc22+1
+	;; loop
+	ldb	<hin+1
+	pshs	b
+	lda	<yin+1
+	anda	#7
+a@	ldb	a,u
+	stb	smc23+1
+	andb	<fmask
+	stb	smc21+1
+	ldb	a,u
+	andb	<lmask
+	stb	smc24+1
+	pshs	a
+	bsr	_graf_hline_go
+	puls	a
+	inca
+	anda	#7
+	dec	,s
+	bne	a@
+	ldx	#1
+	jsr	_graf_cset
+	puls	a,u,pc
+
+
 _graf_hline_go:
 	tst	<nodraw
 	bne	out@
 smc20	ldx	#0		; screen loc
 	;; apply first byte
 	lda	,x		; get screen data
-smc21	ora	#0		; apply mask
+	anda	<fmaski		; apply and mask
+smc21	ora	#$ff		; apply or mask
 	sta	,x+		; save to screen
 	;; apply whole bytes
 smc22	ldb	#0
@@ -400,12 +615,15 @@ a@	sta	,x+
 	bne	a@
 	;; apply last byte
 last@	lda	,x		; get screen data
+	anda	<lmaski
 smc24	ora	#0
 	sta	,x		; save to screen
 	ldd	smc20+1		; increment the screen position
 	addd	#32		; to be ready for next hline call
 	std	smc20+1		;
 out@	rts
+
+
 
 	ifdef	0
 ;;; Scroll lie veritcally
@@ -518,11 +736,16 @@ north	.dw	0
 south	.dw	192
 scrpos	.dw	0
 fmask	.db	0
+fmaski  .db	0
 whole	.db	0
 lmask   .db	0
+lmaski	.db	0
 nodraw	.db	0
 vtop	.db	0
 hleft	.db	0
+temp1	.db	0
+temp2	.db	0
+temp3	.db	0
 
 x2	.dw	0
 y2	.dw	0
@@ -612,6 +835,8 @@ a@	ora	,s
 c@	leax	-1,x
 b@	puls	b
 	stb	<fmask
+	comb
+	stb	<fmaski
 	tfr	x,d
 	lsrb
 	lsrb
@@ -623,6 +848,7 @@ b@	puls	b
 	ldx	#tabl
 	ldb	b,x
 	stb	<lmask
-
+	comb
+	stb	<lmaski
 	clr	<nodraw
 	rts
