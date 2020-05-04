@@ -44,8 +44,11 @@ height 192
    hbox { label "Volume" hslide volume valmax 11 width 70 value 5 }
    hbox { label "Text Box:" text text1 text1 width 100 }
    hbox { label "another: " text text2 text2 width 150 }
-   hbox height 20 { button ok "Ok"  button save "Save"
+   hbox height 20 { button ok "Ok"  button save "Redraw"
+                    button thumb "Thumbnail"
+		    button basic "BASIC"
    	hbox maxw
+	bitmap "floppy.cbm"
    	button quit "Quit"
    }
 }

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define MAX(a,b) (a > b ? a : b);
 #define VPAD 2
@@ -30,6 +31,7 @@ enum {
     MENUITEM,
     WINDOW,
     TEXT,
+    BITMAP,
 };
 
 /*This an internal compile-time widget structure,
@@ -42,6 +44,7 @@ struct widget_s {
     int w;
     int h;
     char *text;
+    int tsize;
     char *ctext;
     int d;
     widget *parent;
@@ -209,27 +212,27 @@ void new_widget() {
 }
 
 // apply justification to text
-void apply_just(widget *w) {
+void apply_just(widget *w, int wi, int h) {
     switch(w->flags & HALIGN) {
     case HCENTER:
-	w->x1 = w->x + w->w/2 - strlen(w->text) * 4 / 2;
+	w->x1 = w->x + w->w/2 - wi / 2;
 	break;
     case HLEFT:
 	w->x1 = w->x;
 	break;
     case HRIGHT:
-	w->x1 = w->x + w->w - strlen(w->text) * 4;
+	w->x1 = w->x + w->w - wi;
 	break;
     }
     switch(w->flags & VALIGN) {
     case VCENTER:
-	w->y1 = w->y + w->h/2 - 6 / 2;
+	w->y1 = w->y + w->h/2 - h / 2;
 	break;
     case VTOP:
 	w->y1 = w->y;
 	break;
     case VBOTTOM:
-	w->y1 = w->y + w->h - 6;
+	w->y1 = w->y + w->h - h;
     }
 }
 
@@ -433,7 +436,7 @@ void vset_label(widget *w, int height) {
 void vpos_label(widget *w, int x, int y) {
     w->y = y;
     w->x = x;
-    apply_just(w);
+    apply_just(w, strlen(w->text) *4, 6);
 }
 
 void hsize_label(widget *w) {
@@ -457,6 +460,70 @@ void do_label() {
     cur->ctext = unique();
     //cur->rt_flags = RT_CLICKABLE;
 }
+
+
+/* Bitmap widget */
+
+
+unsigned char *load_bmp(char *path) {
+    int fd;
+    int size;
+    unsigned char *data;
+
+    errno = 0;
+    fd = open(path, O_RDONLY);
+    size = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
+    data = malloc(size);
+    read(fd, data, size);
+    if (errno) {
+	perror("reading bitmap");
+	exit(1);
+    }
+    cur->text = data;
+    cur->tsize = size;
+    return data;
+}
+
+void vsize_bitmap(widget *w) {
+    if (w->flags & MAXH) return;
+    if (w->h) return;
+    w->h = w->text[2]*256L + w->text[3];
+}
+
+void vset_bitmap(widget *w, int height) {
+    w->h = height;
+}
+
+void vpos_bitmap(widget *w, int x, int y) {
+    w->x = x;
+    w->y = y;
+    apply_just(w, w->text[0]*256L + w->text[1],
+	       w->text[2]*256L + w->text[3]);
+}
+
+void hsize_bitmap(widget *w) {
+    if (w->flags & MAXW) return;
+    w->w = w->text[0]*256L + w->text[1];
+}
+
+void hset_bitmap(widget *w, int width) {
+    w->w = width;
+}
+
+void do_bitmap() {
+    new_widget();
+    cur->type = BITMAP;
+    cur->vsize = vsize_bitmap;
+    cur->vset = vset_bitmap;
+    cur->vpos = vpos_bitmap;
+    cur->hsize = hsize_bitmap;
+    cur->hset = hset_bitmap;
+    load_bmp(getstr());
+    cur->ctext = unique();
+    //cur->rt_flags = RT_CLICKABLE;
+}
+
 
 /*
    Button Widget
@@ -483,7 +550,7 @@ void hset_button(widget *w, int width) {
 void vpos_button(widget *w, int x, int y) {
     w->y = y;
     w->x = x;
-    apply_just(w);
+    apply_just(w, strlen(w->text) * 4,  6);
 }
 
 
@@ -519,13 +586,13 @@ void vset_pop(widget *w, int height) {
 void vpos_pop(widget *w, int x, int y) {
     vpos_vbox(w, x, y+w->h);
     w->y = y;
-    apply_just(w);
     // use this as a place to iterate index values into children
     widget *n;
     int i = 0;
     n = child_by_index(w, w->d);
     w->toff = n->toff;
     w->text = n->text;
+    apply_just(w, strlen(w->text) * 4, 6);
     for (n = w->child; n; n = n->next) {
 	n->d = i++;
 	n->w = w->w;
@@ -715,7 +782,7 @@ void hset_window(widget *w, int width) {
 void vpos_window(widget *w, int x, int y) {
     w->x = x;
     w->y = y;
-    apply_just(w);
+    apply_just(w, strlen(w->text) * 4, 6);
 }
 
 void do_window() {
@@ -877,6 +944,7 @@ command_t cmds[] = {
     { "window",      do_window },
     { "text",        do_text },
     { "ctext",       do_ctext },
+    { "bitmap",      do_bitmap },
     { NULL, NULL },
 };
 
@@ -989,10 +1057,20 @@ void dstring(widget *w) {
     char *s,*d;
     s = w->text;
     d = datafile + oindex;
+    /* fixme: bitmap and text string (label) are too
+       similar... do we need different handling between the types here?
+    */
     if (s) {
-	w->toff = oindex;
-	strcpy(d,s);
-	oindex += strlen(s) + 1;
+	if (w->type == BITMAP) {
+	    w->toff = oindex;
+	    memcpy(d,s,w->tsize);
+	    oindex += w->tsize;
+	}
+	else {
+	    w->toff = oindex;
+	    strcpy(d,s);
+	    oindex += strlen(s) + 1;
+	}
     }
     for (n = w->child; n; n = n->next)
 	dstring(n);

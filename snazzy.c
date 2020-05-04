@@ -15,7 +15,7 @@
 #include "string.h"
 #include "ll.h"   // fixme: remove
 
-uint8_t databuffer[8192];
+//uint8_t databuffer[8192];
 appcall_ptr app_tab[256];
 int aindex = 1;
 int bx1;
@@ -152,6 +152,7 @@ void do_event(widget *w, int ev) {
 	do_menuitem,
 	do_window,
 	do_text,
+	do_bitmap,
     };
     if (w == NULL) return;
     // fixme: check for out of bounds here

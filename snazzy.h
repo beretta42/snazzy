@@ -37,6 +37,7 @@ struct widget_s {
 typedef void (* appcall_ptr)(widget *w, int ev);
 
 
+#define databuffer ((unsigned char *)0x4000)
 
 /* widget types */
 #define TY_VBOX      0
@@ -51,7 +52,8 @@ typedef void (* appcall_ptr)(widget *w, int ev);
 #define TY_MENUITEM  9
 #define TY_WINDOW   10
 #define TY_KEY      11
-#define TY_MAX      12
+#define TY_BITMAP   12
+#define TY_MAX      13
 
 /* widget flags */
 #define FL_CLICKABLE   1        /* this widget can do mouse events */
@@ -141,6 +143,7 @@ void do_menu(widget *w, int ev);
 void do_menuitem(widget *w, int ev);
 void do_window(widget *w, int ev);
 void do_text(widget *w, int ev);
+void do_bitmap(widget *w, int ev);
 
 int get_hslide(widget *w);
 void select_panel(widget *w, int sel);
@@ -160,7 +163,7 @@ extern int bh;
 extern int mx;
 extern int my;
 extern int drawf;
-extern unsigned char databuffer[8192];
+//extern unsigned char databuffer[8192];
 volatile extern unsigned char key;
 
 #endif /* SNAZZY_H */
